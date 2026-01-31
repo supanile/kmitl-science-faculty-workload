@@ -1,0 +1,13 @@
+{
+  "LoginPage": {
+    "title": "เข้าสู่ระบบ",
+    "subtitle": "เลือกวิธีการเข้าสู่ระบบ",
+    "signInWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+    "language": "ภาษา"
+  },
+  "Languages": {
+    "english": "English",
+    "thai": "ภาษาไทย"
+  }
+}

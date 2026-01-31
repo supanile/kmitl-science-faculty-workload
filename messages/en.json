@@ -1,0 +1,13 @@
+{
+  "LoginPage": {
+    "title": "Login",
+    "subtitle": "Select your sign-in method",
+    "signInWithGoogle": "Sign in with Google",
+    "privacyPolicy": "Privacy Policy",
+    "language": "Language"
+  },
+  "Languages": {
+    "english": "English",
+    "thai": "ภาษาไทย"
+  }
+}
