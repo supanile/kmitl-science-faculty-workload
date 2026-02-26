@@ -11,6 +11,9 @@ export async function GET(request: Request) {
     );
   }
 
+  // Build redirect_uri (same as in login route)
+  const redirectUri = `${origin}/auth/callback`;
+
   const tokenUrl = new URL("https://api.science.kmitl.ac.th/iam/oauth2/token");
   const response = await fetch(tokenUrl.toString(), {
     method: "POST",
@@ -20,7 +23,7 @@ export async function GET(request: Request) {
     body: new URLSearchParams({
       grant_type: "authorization_code",
       client_id: process.env.OAUTH_CLIENT_ID!,
-      redirect_uri: process.env.OAUTH_REDIRECT_URI!,
+      redirect_uri: redirectUri,
       code,
       client_secret: process.env.OAUTH_CLIENT_SECRET!,
     }),
