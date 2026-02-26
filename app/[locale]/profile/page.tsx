@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   }
   
   const { profile, userinfo } = JSON.parse(userInfoCookie.value);
-  
+
   return (
     <main className="min-h-screen bg-[#F9F4EE] dark:bg-[#1a1a1a] p-8">
       <div className="max-w-6xl mx-auto">
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
               Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              ยินดีต้อนรับ {profile?.full_name_th || profile?.full_name_en || 'User'}
+              ยินดีต้อนรับ {profile?.data.firstname_th || profile?.full_name_en || 'User'} {profile?.data.lastname_th || ''}
             </p>
           </div>
           <a
@@ -41,25 +41,19 @@ export default async function DashboardPage() {
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">ชื่อ (ภาษาไทย)</p>
               <p className="text-gray-900 dark:text-white font-medium">
-                {profile?.full_name_th || '-'}
+                {profile?.data.firstname_th || '-'}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">ชื่อ (ภาษาอังกฤษ)</p>
               <p className="text-gray-900 dark:text-white font-medium">
-                {profile?.full_name_en || '-'}
+                {profile?.data.firstname_en || '-'}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">อีเมล</p>
               <p className="text-gray-900 dark:text-white font-medium">
-                {userinfo?.email || '-'}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Username</p>
-              <p className="text-gray-900 dark:text-white font-medium">
-                {userinfo?.username || '-'}
+                {userinfo?.data.email || '-'}
               </p>
             </div>
           </div>

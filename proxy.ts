@@ -13,7 +13,7 @@ export default function proxy(request: NextRequest) {
   const accessToken = request.cookies.get('access_token');
   
   // Protected routes that require authentication
-  const isProtectedRoute = pathname.includes('/dashboard');
+  const isProtectedRoute = pathname.includes('/profile');
   
   // If accessing protected route without token, redirect to home
   if (isProtectedRoute && !accessToken) {

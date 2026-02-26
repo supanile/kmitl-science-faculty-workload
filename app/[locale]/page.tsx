@@ -7,7 +7,7 @@ export default async function Home() {
   
   // If user is already logged in, redirect to dashboard
   if (accessToken) {
-    redirect('/dashboard');
+    redirect('/profile');
   }
   
   // Otherwise, redirect to login

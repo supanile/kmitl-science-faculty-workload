@@ -49,17 +49,16 @@ export async function GET(request: Request) {
       path: "/",
     });
 
-    // Store user info for easy access
     cookieStore.set("user_info", JSON.stringify({ profile, userinfo }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
 
     // Redirect to dashboard after successful login
-    const redirectUrl = new URL("/dashboard", origin);
+    const redirectUrl = new URL("/profile", origin);
     return NextResponse.redirect(redirectUrl);
   } catch (err) {
     console.error("Error fetching user data:", err);
