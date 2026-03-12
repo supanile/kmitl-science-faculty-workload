@@ -7,13 +7,19 @@ export function ThemeSwitcher() {
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
   React.useEffect(() => {
-    // Check initial theme
+    // Check initial theme and sync <html> class
     const savedTheme = localStorage.getItem('theme');
-    const isDark = 
+    const isDark =
       savedTheme === 'dark' ||
       (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ||
       (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
+
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     setTheme(isDark ? 'dark' : 'light');
   }, []);
 
@@ -33,7 +39,7 @@ export function ThemeSwitcher() {
   return (
     <button 
       onClick={toggleTheme}
-      className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md p-2 transition-colors text-gray-600 dark:text-gray-400"
+      className="hover:bg-orange-100 dark:hover:bg-sidebar-accent rounded-md p-2 transition-colors text-orange-700 dark:text-sidebar-foreground"
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (

@@ -16,6 +16,7 @@
   },
   "Languages": {
     "english": "English",
-    "thai": "ภาษาไทย"
+    "thai": "ภาษาไทย",
+    "language": "Language"
   }
 }
