@@ -3,10 +3,10 @@
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { SendHorizonal, Clock, CheckCircle2, XCircle, FileText } from 'lucide-react';
+import { SendHorizonal, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'draft' | 'processing';
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'processing';
 
 interface LatestSubmissionCardProps {
   status: SubmissionStatus | null;
@@ -34,12 +34,6 @@ const statusConfig: Record<
     dotColor: 'bg-red-500',
     textColor: 'text-gray-900 dark:text-white',
     icon: XCircle,
-  },
-  draft: {
-    labelKey: 'Dashboard.statusDraft',
-    dotColor: 'bg-gray-400',
-    textColor: 'text-gray-900 dark:text-white',
-    icon: FileText,
   },
   processing: {
     labelKey: 'Dashboard.statusProcessing',

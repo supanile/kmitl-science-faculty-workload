@@ -85,7 +85,7 @@ export function useDashboardData() {
             {
               id: '5',
               title: 'ภาระงาน ปีการศึกษา 2567 ภาคเรียนที่ 1',
-              status: 'draft',
+              status: 'approved',
               submittedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
               teachingHours: 60,
             },

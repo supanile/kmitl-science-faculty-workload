@@ -42,12 +42,6 @@ const badgeConfig: Record<SubmissionStatus, BadgeConfig> = {
       'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
     dotColor: 'bg-red-500',
   },
-  draft: {
-    labelKey: 'Dashboard.statusDraft',
-    className:
-      'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-700/40 dark:text-gray-400 dark:border-gray-600',
-    dotColor: 'bg-gray-400',
-  },
 };
 
 // ─── Relative time helper ────────────────────────────────────────────────────
