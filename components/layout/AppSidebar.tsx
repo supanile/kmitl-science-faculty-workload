@@ -21,7 +21,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotificationsContext } from '@/components/providers/NotificationsProvider';
 
 const menuItems = [
   { key: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -34,7 +34,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { state } = useSidebar();
-  const { unreadCount } = useNotifications();
+  const { unreadCount } = useNotificationsContext();
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + '/');

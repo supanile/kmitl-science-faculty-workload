@@ -17,7 +17,7 @@ export interface AppNotification {
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-interface UseNotificationsReturn {
+export interface UseNotificationsReturn {
   notifications: AppNotification[];
   unreadCount: number;
   loading: boolean;

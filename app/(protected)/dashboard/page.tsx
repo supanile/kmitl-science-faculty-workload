@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useDashboardData } from '@/hooks/use-dashboard-data';
-import { useNotifications } from '@/hooks/use-notifications';
+import { useNotificationsContext } from '@/components/providers/NotificationsProvider';
 import { WorkloadProgressCard } from '@/components/dashboard/WorkloadProgressCard';
 import { ActiveCoursesCard } from '@/components/dashboard/ActiveCoursesCard';
 import { LatestSubmissionCard } from '@/components/dashboard/LatestSubmissionCard';
@@ -19,7 +19,7 @@ export default function DashboardPage() {
     loading: notifLoading,
     markAllAsRead,
     markAsRead,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const nowMs = data?.fetchedAt ?? 0;
 
