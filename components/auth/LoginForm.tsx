@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,8 @@ export default function LoginForm() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password.trim()) {
+    const emailValue = email.trim();
+    if (!emailValue || !password.trim()) {
       setError(t("LoginPage.requiredFields"));
       return;
     }
@@ -31,18 +31,39 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email: email.trim(),
-        password,
-        redirect: false,
+      // Better Auth (email/password) sign-in endpoint.
+      // Provided by `app/api/auth/[...all]/route.ts` via `toNextJsHandler(auth)`.
+      const res = await fetch("/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: emailValue,
+          password,
+        }),
       });
 
-      if (result?.error) {
-        setError(t("LoginPage.invalidCredentials"));
-      } else if (result?.ok) {
-        router.push("/dashboard");
-        router.refresh();
+      if (!res.ok) {
+        // Try to read message from server; otherwise fallback to i18n strings.
+        let message = "";
+        try {
+          const data = await res.json();
+          message = data?.message || data?.error || "";
+        } catch {
+          // ignore
+        }
+
+        if (res.status === 401 || res.status === 400) {
+          setError(message || t("LoginPage.invalidCredentials"));
+        } else {
+          setError(message || t("LoginPage.unexpectedError"));
+        }
+        return;
       }
+
+      router.replace("/dashboard");
+      router.refresh();
     } catch {
       setError(t("LoginPage.unexpectedError"));
     } finally {
@@ -115,7 +136,11 @@ export default function LoginForm() {
             onClick={() => setShowPassword((prev) => !prev)}
             disabled={isLoading}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#F2651A]/60 hover:text-[#F2651A] transition-colors"
-            aria-label={showPassword ? t("LoginPage.hidePassword") : t("LoginPage.showPassword")}
+            aria-label={
+              showPassword
+                ? t("LoginPage.hidePassword")
+                : t("LoginPage.showPassword")
+            }
           >
             {showPassword ? (
               <EyeOff className="w-4 h-4" />
@@ -133,7 +158,7 @@ export default function LoginForm() {
           role="alert"
           className="flex items-start gap-2 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2.5 text-sm text-red-600 dark:text-red-400"
         >
-          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
