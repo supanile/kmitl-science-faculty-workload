@@ -41,6 +41,17 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // Update session every 24 hours
   },
+
+  // User fields configuration
+  user: {
+    additionalFields: {
+      firstname_th: { type: 'string' },
+      lastname_th: { type: 'string' },
+      firstname_en: { type: 'string' },
+      lastname_en: { type: 'string' },
+      iamId: { type: 'string' },
+    },
+  },
 });
 
 export { prisma };
