@@ -1,58 +1,42 @@
-import { cookies } from 'next/headers';
-import { prisma } from '@/lib/auth/auth';
+import { headers as nextHeaders } from 'next/headers';
+import { auth } from '@/lib/auth/auth';
 import type { AuthSession, AppUser } from '@/lib/types/auth';
 
 export async function getAuthSession(): Promise<AuthSession | null> {
   try {
-    const cookieStore = await cookies();
-
-    let sessionToken =
-      cookieStore.get('better_auth.session_token')?.value ||
-      cookieStore.get('better-auth.session_token')?.value ||
-      cookieStore.get('__Secure-better_auth.session_token')?.value ||
-      cookieStore.get('__Secure-better-auth.session_token')?.value ||
-      cookieStore.get('sessionToken')?.value;
-
-    if (!sessionToken) {
-      return null;
-    }
-
-    if (sessionToken.includes('.')) {
-      const [sessionId] = sessionToken.split('.');
-
-      sessionToken = sessionId;
-    }
-
-    // Query the database for the session and user data
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
-      include: {
-        user: true,
-      },
+    const headers = await nextHeaders();
+    const session = await auth.api.getSession({
+      headers: headers,
     });
 
     if (!session) {
       return null;
     }
 
-    // Check if session has expired
-    if (new Date(session.expiresAt) < new Date()) {
-      return null;
-    }
+    const { user } = session;
+    const userData = user as any;
 
     return {
       profile: {
         data: {
-          firstname_en: session.user.firstname_en || session.user.name || '',
-          lastname_en: session.user.lastname_en || '',
-          firstname_th: session.user.firstname_th || session.user.name || '',
-          lastname_th: session.user.lastname_th || '',
+          firstname_en: userData.firstname_en || user.name || '',
+          lastname_en: userData.lastname_en || '',
+          firstname_th: userData.firstname_th || user.name || '',
+          lastname_th: userData.lastname_th || '',
           position_en: 'Faculty Member',
-          avatar_url: session.user.image || '',
+          avatar_url: user.image || '',
+        },
+      },
+      userinfo: {
+        data: {
+          id: user.id,
+          email: user.email,
+          avatar: user.image,
         },
       },
     } as AuthSession;
   } catch (error) {
+    console.error('[getAuthSession] Error:', error);
     return null;
   }
 }
@@ -77,37 +61,12 @@ export async function getAppUser(): Promise<AppUser | null> {
  */
 export async function isAuthenticated(): Promise<boolean> {
   try {
-    const cookieStore = await cookies();
-
-    let sessionToken =
-      cookieStore.get('better_auth.session_token')?.value ||
-      cookieStore.get('better-auth.session_token')?.value ||
-      cookieStore.get('sessionToken')?.value;
-
-    if (!sessionToken) {
-      return false;
-    }
-
-    // Extract session ID from signed token (format: sessionId.signature)
-    if (sessionToken.includes('.')) {
-      const [sessionId] = sessionToken.split('.');
-      sessionToken = sessionId;
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { token: sessionToken },
+    const headers = await nextHeaders();
+    const session = await auth.api.getSession({
+      headers: headers,
     });
 
-    if (!session) {
-      return false;
-    }
-
-    // Check if session has expired
-    if (new Date(session.expiresAt) < new Date()) {
-      return false;
-    }
-
-    return true;
+    return !!session;
   } catch (error) {
     console.error('[isAuthenticated] Error:', error);
     return false;
