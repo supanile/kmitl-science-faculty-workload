@@ -2,10 +2,12 @@ import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { prisma } from './prisma';
 import { dash } from '@better-auth/infra';
+import { admin } from 'better-auth/plugins';
 
-const isProd = process.env.NODE_ENV === 'production';
+// auth.ts
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  appName: "Kmitl Workload",
+  baseURL: 'https://9pm.website',
   secret: process.env.BETTER_AUTH_SECRET,
 
   database: prismaAdapter(prisma, {
@@ -15,25 +17,23 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true },
 
   trustedOrigins: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://192.168.1.37:3000',
-    'https://09b5-2001-fb1-5f-e98-f121-fdf8-e57-a8e9.ngrok-free.app',
-    'https://9pm.website'
+    'https://9pm.website',
+    'https://www.9pm.website',
+    'http://localhost:3003',
   ],
 
   advanced: {
-    defaultCookieAttributes: {
-      domain: isProd ? '.9pm.website' : 'localhost',
-      sameSite: isProd ? 'none' : 'lax',
-      secure: isProd ? true : false,
-    }
+    useSecureCookies: true,
+    ipAddress: {
+      ipAddressHeaders: ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip'],
+    },
   },
 
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
     storeSessionInDatabase: true,
+    deferSessionRefresh: true,
   },
 
   user: {
@@ -46,5 +46,8 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [dash()],
+  plugins: [
+    dash(),
+    admin()
+  ]
 });

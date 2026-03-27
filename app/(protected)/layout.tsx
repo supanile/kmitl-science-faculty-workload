@@ -13,9 +13,7 @@ type Props = {
 export const dynamic = 'force-dynamic';
 
 export default async function ProtectedLayout({ children }: Props) {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
+  const session = await getAuthSession();
 
   // for instance IAM 
 
@@ -26,13 +24,18 @@ export default async function ProtectedLayout({ children }: Props) {
   if (!session) {
     redirect('/login');
   }
-  const user = await getAppUser();
+
+  const user = {
+    name: `${session.profile?.data.firstname_en || ''} ${session.profile?.data.lastname_en || ''}`.trim() || 'User',
+    role: session.profile?.data.position_en || 'Faculty Member',
+    avatar: session.profile?.data.avatar_url,
+  };
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <div className="flex-1 flex flex-col min-h-screen w-full bg-[#F9F4EE] dark:bg-[#1a1a1a]">
-        <AppHeader userInfo={user ?? undefined} />
+        <AppHeader userInfo={user} />
         <main className="flex-1 p-4">
           {children}
         </main>
