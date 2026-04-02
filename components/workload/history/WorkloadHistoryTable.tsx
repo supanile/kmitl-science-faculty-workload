@@ -4,11 +4,12 @@ import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowUpDown,
+  Check,
+  CircleDashed,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   FileText,
+  X,
 } from 'lucide-react';
 import type {
   WorkloadHistoryServiceItem,
@@ -22,6 +23,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { cn } from '@/lib/utils';
 
 type WorkloadRecord = WorkloadHistoryServiceItem;
@@ -32,6 +42,22 @@ interface WorkloadHistoryTableProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+}
+
+function getPaginationItems(currentPage: number, totalPages: number): Array<number | 'ellipsis'> {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, 'ellipsis', totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, 'ellipsis', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', totalPages];
 }
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -96,19 +122,25 @@ function StatusBadge({ status }: { status: WorkloadStatus }) {
 // Figma Row: bg #FFFBF6 | padding 30px 50px (desktop) | responsive on mobile
 function StatusTimeline({
   record,
-  formatDate,
+  formatTimelineDate,
 }: {
   record: WorkloadRecord;
-  formatDate: (s: string) => string;
+  formatTimelineDate: (s: string) => string;
 }) {
   const { t } = useTranslation();
   const s = record.status;
 
-  type Step = { label: string; detail: string; done: boolean; active: boolean; rejected: boolean };
+  type Step = {
+    label: string;
+    detail: string;
+    done: boolean;
+    active: boolean;
+    rejected: boolean;
+  };
   const steps: Step[] = [
     {
       label: t('WorkloadHistory.timelineSubmitted'),
-      detail: formatDate(record.submittedAt),
+      detail: formatTimelineDate(record.submittedAt),
       done: true, active: false, rejected: false,
     },
     {
@@ -140,37 +172,43 @@ function StatusTimeline({
   ];
 
   return (
-    <div className="bg-[#FFFBF6] px-4 py-6 md:px-8 lg:px-[50px] lg:py-[30px]">
-      <div className="flex items-start justify-around">
+    <div className="bg-[#FFFBF6] px-5 py-6 md:px-8 lg:px-[50px] lg:py-[30px]">
+      <div className="grid gap-6 md:grid-cols-4 md:gap-0 md:items-start">
         {steps.map((step, i) => {
           const circleClass = step.rejected
-            ? 'bg-[#DC2626] text-white'
-            : step.done || step.active
-              ? 'bg-[#F27F0D] text-white'
-              : 'bg-muted text-muted-foreground';
-          const titleClass = step.rejected ? 'text-[#DC2626]'
-            : step.active ? 'text-[#F27F0D]'
-            : step.done ? 'text-foreground'
-            : 'text-[#8E8E8E]';
-          const detailClass = step.rejected ? 'text-[#DC2626]'
-            : step.active ? 'text-[#C96A0A]'
-            : 'text-[#8E8E8E]';
+            ? 'bg-[#DC2626] text-white shadow-[0_8px_18px_rgba(220,38,38,0.18)]'
+            : 'bg-[#F27F0D] text-white shadow-[0_8px_18px_rgba(242,127,13,0.2)]';
+          const titleClass = step.rejected
+            ? 'text-[#B42318]'
+            : 'text-[#111111]';
+          const detailClass = step.rejected
+            ? 'text-[#B42318]'
+            : 'text-[#8A8178]';
+          const lineClass = step.rejected ? 'border-[#DC2626] border-solid' : step.done ? 'border-[#F27F0D] border-solid' : 'border-[#F27F0D] border-dashed';
 
           return (
-            <Fragment key={step.label}>
-              <div className="flex flex-col items-center gap-2 text-center" style={{ minWidth: '60px', maxWidth: '140px' }}>
-                <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold', circleClass)}>
-                  {step.rejected ? '✕' : step.done || step.active ? '✓' : String(i + 1)}
+            <div key={step.label} className="flex min-w-0 flex-col items-center gap-2 text-center">
+              <div className="flex min-w-0 flex-col items-center text-center">
+                <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors', circleClass)}>
+                  {step.rejected ? (
+                    <X className="h-4 w-4" strokeWidth={2.5} />
+                  ) : step.done ? (
+                    <Check className="h-4 w-4" strokeWidth={2.5} />
+                  ) : step.active ? (
+                    <CircleDashed className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                  ) : (
+                    <CircleDashed className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                  )}
                 </div>
-                <p className={cn('text-xs font-medium leading-4 md:text-sm', titleClass)}>{step.label}</p>
-                <p className={cn('text-[10px] leading-4 md:text-[11px]', detailClass)}>{step.detail}</p>
               </div>
-              {i < steps.length - 1 && (
-                <div className="mt-4 flex-1 px-1">
-                  <div className={cn('h-px w-full', step.done && !step.rejected ? 'bg-[#F27F0D]' : 'border-t border-dashed border-[#F27F0D]/50')} />
-                </div>
-              )}
-            </Fragment>
+              <div className={cn('hidden w-full md:block', i === steps.length - 1 && 'md:w-full')}>
+                <div className={cn('w-full border-t', lineClass)} />
+              </div>
+              <div className="space-y-0.5">
+                <p className={cn('text-[14px] font-medium leading-5', titleClass)}>{step.label}</p>
+                <p className={cn('text-[10px] leading-4', detailClass)}>{step.detail}</p>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -201,6 +239,39 @@ export function WorkloadHistoryTable({
     const date = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(d);
     const time = new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }).format(d);
     return `วันที่ส่ง ${date} เวลา ${time} น.`;
+  };
+
+  const formatTimelineDate = (iso: string) => {
+    const d = new Date(iso);
+    if (isEn) {
+      const date = new Intl.DateTimeFormat('en-US', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'Asia/Bangkok',
+      }).format(d);
+      const time = new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Bangkok',
+      }).format(d);
+      return `${date} | ${time}`;
+    }
+
+    const date = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'Asia/Bangkok',
+    }).format(d);
+    const time = new Intl.DateTimeFormat('th-TH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Asia/Bangkok',
+    }).format(d);
+    return `${date} | ${time}`;
   };
 
   const toggleExpand = (id: string) => setExpandedId((cur) => (cur === id ? null : id));
@@ -289,7 +360,7 @@ export function WorkloadHistoryTable({
                   {isOpen && (
                     <TableRow className="hover:bg-transparent">
                       <TableCell colSpan={5} className="p-0">
-                        <StatusTimeline record={record} formatDate={formatDate} />
+                        <StatusTimeline record={record} formatTimelineDate={formatTimelineDate} />
                       </TableCell>
                     </TableRow>
                   )}
@@ -301,72 +372,45 @@ export function WorkloadHistoryTable({
       </Table>
 
       <div className="border-t border-border bg-card px-4 py-4 md:px-5">
-        <div className="flex items-center justify-between lg:hidden">
-          <button
-            type="button"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-            className="flex h-8 items-center gap-1 rounded-[10px] border border-[#F27F0D] px-3 text-xs font-medium text-[#F27F0D] disabled:opacity-30"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden md:inline">{t('WorkloadHistory.prevPage')}</span>
-          </button>
-          <span className="text-sm text-[#F27F0D]">
+        <Pagination className="justify-between gap-3 max-md:flex-col">
+          <div className="text-sm text-muted-foreground">
             {t('WorkloadHistory.page')} {currentPage} {t('WorkloadHistory.pageOf')} {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            className="flex h-8 items-center gap-1 rounded-[10px] border border-[#F27F0D] px-3 text-xs font-medium text-[#F27F0D] disabled:opacity-30"
-          >
-            <span className="hidden md:inline">{t('WorkloadHistory.nextPage')}</span>
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="mx-auto hidden h-8 w-full max-w-[1013px] items-center justify-between lg:flex">
-          <button
-            type="button"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-            className="flex h-8 w-[144px] shrink-0 items-center justify-center gap-[5px] rounded-[10px] border border-[#F27F0D] px-6 text-xs font-medium text-[#F27F0D] transition-opacity hover:bg-orange-50 disabled:opacity-30"
-          >
-            <ChevronLeft className="h-[15px] w-[15px]" />
-            <span className="flex h-4 w-[76px] items-center justify-center text-center">
-              {t('WorkloadHistory.prevPage')}
-            </span>
-          </button>
-
-          <div className="flex h-8 shrink-0 items-center gap-[13px]">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] border border-[#F27F0D]">
-              <FileText className="h-[15px] w-[15px] text-[#F27F0D]" />
-            </div>
-            <button
-              type="button"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage >= totalPages}
-              className="flex h-8 w-[167px] shrink-0 items-center justify-center gap-[5px] rounded-[10px] border border-[#F27F0D] px-6 text-xs font-medium text-[#F27F0D] transition-opacity hover:bg-orange-50 disabled:opacity-30"
-            >
-              <span className="flex h-4 w-[99px] items-center justify-center text-center">
+          </div>
+          <PaginationContent className="flex-wrap justify-center">
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="min-w-[96px]"
+              >
+                {t('WorkloadHistory.prevPage')}
+              </PaginationPrevious>
+            </PaginationItem>
+            {getPaginationItems(currentPage, totalPages).map((item, index) => (
+              <PaginationItem key={`${item}-${index}`}>
+                {item === 'ellipsis' ? (
+                  <PaginationEllipsis />
+                ) : (
+                  <PaginationLink
+                    isActive={item === currentPage}
+                    onClick={() => onPageChange(item)}
+                  >
+                    {item}
+                  </PaginationLink>
+                )}
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+                className="min-w-[96px]"
+              >
                 {t('WorkloadHistory.nextPage')}
-              </span>
-              <ChevronRight className="h-[15px] w-[15px]" />
-            </button>
-          </div>
-
-          <div className="flex h-8 shrink-0 items-center gap-[14px]">
-            <span className="w-[39px] text-[16px] font-normal leading-6 text-[#F27F0D]">
-              {t('WorkloadHistory.page')}
-            </span>
-            <div className="flex h-8 w-[130px] items-center justify-center rounded-[10px] border border-[#F27F0D] px-5 text-[16px] font-light text-[#F27F0D]">
-              {currentPage}
-            </div>
-            <span className="text-[16px] font-normal leading-6 text-[#F27F0D]">
-              {t('WorkloadHistory.pageOf')} {totalPages}
-            </span>
-          </div>
-        </div>
+              </PaginationNext>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );
