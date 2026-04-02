@@ -172,7 +172,7 @@ function StatusTimeline({
   ];
 
   return (
-    <div className="bg-[#FFFBF6] px-5 py-6 md:px-8 lg:px-[50px] lg:py-[30px]">
+    <div className="bg-[#FFFBF6] px-5 py-6 dark:bg-[#211B19] md:px-8 lg:px-[50px] lg:py-[30px]">
       <div className="grid gap-0 md:grid-cols-4 md:gap-0 md:items-start">
         {steps.map((step, i) => {
           const circleClass = step.rejected
@@ -180,10 +180,10 @@ function StatusTimeline({
             : 'bg-[#F27F0D] text-white shadow-[0_8px_18px_rgba(242,127,13,0.2)]';
           const titleClass = step.rejected
             ? 'text-[#B42318]'
-            : 'text-[#111111]';
+            : 'text-[#111111] dark:text-[#F5EEE8]';
           const detailClass = step.rejected
             ? 'text-[#B42318]'
-            : 'text-[#8A8178]';
+            : 'text-[#8A8178] dark:text-[#B7ABA4]';
           const lineClass = step.rejected ? 'border-[#DC2626] border-solid' : step.done ? 'border-[#F27F0D] border-solid' : 'border-[#F27F0D] border-dashed';
 
           return (
@@ -293,7 +293,7 @@ export function WorkloadHistoryTable({
         </span>
       </div>
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         {records.length === 0 ? (
           <div className="px-4 py-10 text-center text-base text-muted-foreground">
             {t('WorkloadHistory.noRecords')}
@@ -363,7 +363,7 @@ export function WorkloadHistoryTable({
         )}
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <Table className="min-w-[860px]">
           <TableHeader>
             <TableRow className="bg-muted/60 hover:bg-muted/60">
