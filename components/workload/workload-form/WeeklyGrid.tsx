@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { WorkloadCard } from './WorkloadCard';
 import { EmptyState } from './EmptyState';
-import { Plus, Table, ChevronDown } from 'lucide-react';
+import { Plus, Table } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +21,9 @@ interface DayColumn {
     time: string;
     room: string;
     studentCount: number;
+    status?: 'pending' | 'approved' | 'rejected' | 'draft';
+    lectureWeeks?: number[];
+    labWeeks?: number[];
   }>;
 }
 
@@ -29,6 +31,11 @@ interface WeeklyGridProps {
   columns: DayColumn[];
   semesterBadge: string;
   onAddClick: (dayCode: string) => void;
+  onEditClick?: (dayCode: string, courseId: string) => void;
+  onRemoveClick?: (dayCode: string, courseId: string) => void;
+  day?: string;
+  semester?: string;
+  year?: string;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -46,39 +53,37 @@ function CourseBadge({ count }: { count: number }) {
 
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold leading-none ${color}`}
+      className={`inline-flex items-center justify-center rounded-full px-1.5 min-w-4.5 h-4.5 text-[10px] font-semibold leading-none ${color}`}
     >
       {count}
     </span>
   );
 }
 
-
-
 // ────────────────────────────────────────────────────────────
-// Desktop Column — แสดง 2 card แรก + ปุ่ม "X วิชาเพิ่มเติม"
+// Desktop Column
 // ────────────────────────────────────────────────────────────
-const PREVIEW_COUNT = 2;
-
 function DesktopColumn({
+  dayCode,
   courses,
   onAddClick,
+  day,
+  semester,
+  year,
 }: {
+  dayCode: string;
   courses: DayColumn['courses'];
   onAddClick: () => void;
+  day?: string;
+  semester?: string;
+  year?: string;
 }) {
   const { t } = useTranslation();
-  // const [expanded, setExpanded] = useState(false);
-  //
-  // const hasMore = courses.length > PREVIEW_COUNT;
-  // const hiddenCount = courses.length - PREVIEW_COUNT;
-  // const visibleCourses = expanded ? courses : courses.slice(0, PREVIEW_COUNT);
 
   return (
     <div className="flex flex-col gap-1.5 p-1.5 pb-4">
       {courses.length > 0 ? (
         <>
-          {/* Card list */}
           <div className="flex flex-col gap-1.5">
             {courses.map((course) => (
               <WorkloadCard
@@ -88,35 +93,16 @@ function DesktopColumn({
                 time={course.time}
                 room={course.room}
                 studentCount={course.studentCount}
+                status={course.status}
+                day={day || dayCode}
+                semester={semester}
+                year={year}
+                lectureWeeks={course.lectureWeeks}
+                labWeeks={course.labWeeks}
               />
             ))}
           </div>
 
-          {/* ปุ่ม "X วิชาเพิ่มเติม" / "ย่อ" - Commented out temporarily to show all courses */}
-          {/* 
-          {hasMore && (
-            <button
-              onClick={() => setExpanded((v) => !v)}
-              className="inline-flex h-8 w-full items-center justify-center gap-1 rounded-lg bg-orange-50 text-orange-600 text-xs font-semibold transition-all hover:bg-orange-100 dark:bg-[#C96442]/20 dark:text-[#C96442] dark:hover:bg-[#C96442]/30 border border-orange-200 dark:border-[#C96442]/40 cursor-pointer"
-            >
-              {expanded ? (
-                <>
-                  <ChevronDown className="h-3 w-3 rotate-180" />
-                  <span>{t('WorkloadForm.addCourse')}</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-3 w-3" />
-                  <span>
-                    {`+${hiddenCount} ${t('WorkloadForm.addCourse')}`}
-                  </span>
-                </>
-              )}
-            </button>
-          )}
-          */}
-
-          {/* ปุ่ม + เพิ่มวิชา */}
           <button
             onClick={onAddClick}
             className="inline-flex h-8 w-full items-center justify-center gap-1 rounded-full border-2 border-orange-400 bg-white text-orange-500 transition-all hover:bg-orange-50 hover:border-orange-500 dark:bg-[#302826] dark:border-[#C96442] dark:text-[#C96442] dark:hover:bg-[#3d3533] shrink-0 cursor-pointer text-xs font-semibold"
@@ -139,6 +125,8 @@ export function WeeklyGrid({
   columns,
   semesterBadge,
   onAddClick,
+  semester,
+  year,
 }: WeeklyGridProps) {
   const { t } = useTranslation();
 
@@ -171,12 +159,7 @@ export function WeeklyGrid({
           MOBILE VIEW — shadcn/ui Accordion (< sm)
           ════════════════════════════════════════ */}
       <div className="sm:hidden pb-2">
-        <Accordion
-          type="multiple"
-          // วันที่มีวิชาจะ expand อัตโนมัติ
-          defaultValue={[]}
-          className="space-y-2"
-        >
+        <Accordion type="multiple" defaultValue={[]} className="space-y-2">
           {days.map((day) => {
             const column = columns.find((c) => c.dayCode === day.code);
             const courses = column?.courses ?? [];
@@ -188,7 +171,7 @@ export function WeeklyGrid({
                 value={day.code}
                 className="border border-gray-200 dark:border-[#4a4441] rounded-xl"
               >
-                <AccordionTrigger className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#302826] hover:bg-gray-100 dark:hover:bg-[#3d3533] hover:no-underline [&[data-state=open]]:rounded-b-none [&[data-state=open]]:bg-gray-100 dark:[&[data-state=open]]:bg-[#3d3533]">
+                <AccordionTrigger className="px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#302826] hover:bg-gray-100 dark:hover:bg-[#3d3533] hover:no-underline data-[state=open]:rounded-b-none data-[state=open]:bg-gray-100 dark:data-[state=open]:bg-[#3d3533]">
                   <div className="flex items-center gap-2.5">
                     <span className="text-sm font-semibold text-gray-800 dark:text-[#f0ebe5]">
                       {day.name}
@@ -214,6 +197,8 @@ export function WeeklyGrid({
                             time={course.time}
                             room={course.room}
                             studentCount={course.studentCount}
+                            lectureWeeks={course.lectureWeeks}
+                            labWeeks={course.labWeeks}
                           />
                         ))}
                         <button
@@ -239,7 +224,7 @@ export function WeeklyGrid({
           DESKTOP VIEW — 7-column grid (≥ sm)
           ════════════════════════════════════════ */}
       <div className="hidden sm:block -mx-4 sm:-mx-5">
-        {/* Header row — มี badge จำนวนวิชา */}
+        {/* Header row */}
         <div className="grid grid-cols-7 bg-gray-100 dark:bg-[#3d3533] border-y border-gray-200 dark:border-[#4a4441]">
           {days.map((day) => {
             const column = columns.find((c) => c.dayCode === day.code);
@@ -260,7 +245,6 @@ export function WeeklyGrid({
 
         {/* Content row */}
         <div className="relative grid grid-cols-7 bg-white dark:bg-[#292524] -mb-4 sm:-mb-5">
-          {/* Vertical dividers */}
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
@@ -276,8 +260,12 @@ export function WeeklyGrid({
             return (
               <DesktopColumn
                 key={day.code}
+                dayCode={day.code}
                 courses={courses}
                 onAddClick={() => onAddClick(day.code)}
+                day={day.code}
+                semester={semester}
+                year={year}
               />
             );
           })}

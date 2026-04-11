@@ -61,8 +61,8 @@ function TimePanel({
       </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
         <div className="space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-[#c8bfb8]">
-            {t("WorkloadEntry.startTime")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-600 dark:text-[#c8bfb8]">
+            {t("WorkloadEntry.startTime")}
           </Label>
           <TimePicker
             value={time.start}
@@ -74,8 +74,8 @@ function TimePanel({
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-600 dark:text-[#c8bfb8]">
-            {t("WorkloadEntry.endTime")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-600 dark:text-[#c8bfb8]">
+            {t("WorkloadEntry.endTime")}
           </Label>
           <TimePicker
             value={time.end}
@@ -131,8 +131,8 @@ export function TeachingInfoSection({
 
       {/* Degree Level */}
       <div className="mb-5 sm:mb-6">
-        <Label className="mb-3 block text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-          {t("WorkloadEntry.degreeLevel")} <span className="text-red-500">*</span>
+        <Label className="mb-3 block text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+          {t("WorkloadEntry.degreeLevel")}
         </Label>
         <div
           className={[

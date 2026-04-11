@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLanguage } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
-import { X, Save } from "lucide-react";
+import { Trash2, Save } from "lucide-react";
+import { ConfirmationDialog } from "@/components/alerts/ConfirmationDialog";
 import { CourseInfoSection } from "./CourseInfoSection";
 import { TeachingInfoSection } from "./TeachingInfoSection";
 import { StudentTypeSection } from "./StudentTypeSection";
@@ -30,13 +31,14 @@ interface EntryFormData {
   faculty: string;
   major: string;
   year: string;
-  group: string;
+  studyGroup: string;
   enrolledStudents: string;
   weeklyStudents: string;
   lectureWeeks: WeekEntry[];
   labWeeks: WeekEntry[];
   attachedFile: File | null;
   notes: string;
+  dayOfWeek?: string; // e.g., "monday", "wednesday"
 }
 
 const DAY_NAMES_TH: Record<string, string> = {
@@ -60,6 +62,19 @@ const DAY_NAMES_EN: Record<string, string> = {
 };
 
 const MOCK_LECTURE_LOCKED = [
+  { weekNumber: 1, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 2, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 10, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 11, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 12, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 13, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 14, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 15, lockedByName: "รศ.ดร.สมชาย" },
+];
+
+const MOCK_LAB_LOCKED = [
+  { weekNumber: 1, lockedByName: "รศ.ดร.สมชาย" },
+  { weekNumber: 2, lockedByName: "รศ.ดร.สมชาย" },
   { weekNumber: 10, lockedByName: "รศ.ดร.สมชาย" },
   { weekNumber: 11, lockedByName: "รศ.ดร.สมชาย" },
   { weekNumber: 12, lockedByName: "รศ.ดร.สมชาย" },
@@ -79,9 +94,10 @@ export function WorkloadEntryForm() {
   const semester = searchParams.get("semester") || "1";
   const year = searchParams.get("year") || "2568";
   const dayCode = searchParams.get("day") || "";
+  const mode = searchParams.get("mode") || "add"; // "add" or "edit"
 
-  const dayNameTh = dayCode ? DAY_NAMES_TH[dayCode] ?? dayCode : null;
-  const dayNameEn = dayCode ? DAY_NAMES_EN[dayCode] ?? dayCode : null;
+  const dayNameTh = dayCode ? (DAY_NAMES_TH[dayCode] ?? dayCode) : null;
+  const dayNameEn = dayCode ? (DAY_NAMES_EN[dayCode] ?? dayCode) : null;
 
   const subtitleTh = dayNameTh
     ? `วัน${dayNameTh} ปีการศึกษา ${year} ภาคเรียนที่ ${semester}`
@@ -90,6 +106,11 @@ export function WorkloadEntryForm() {
   const subtitleEn = dayNameEn
     ? `${dayNameEn}, Academic Year ${parseInt(year) - 543}, Semester ${semester}`
     : `Academic Year ${parseInt(year) - 543}, Semester ${semester}`;
+
+  const isEditMode = mode === "edit";
+  const pageTitle = isTh 
+    ? (isEditMode ? "แก้ไขข้อมูลการสอน" : "เพิ่มข้อมูลการสอน")
+    : (isEditMode ? "Edit Teaching Assignment" : "Add Teaching Assignment");
 
   const [formData, setFormData] = useState<EntryFormData>({
     courseCode: "",
@@ -101,18 +122,89 @@ export function WorkloadEntryForm() {
     faculty: "",
     major: "",
     year: "",
-    group: "",
+    studyGroup: "",
     enrolledStudents: "",
     weeklyStudents: "",
     lectureWeeks: buildDefaultWeeks(TOTAL_WEEKS, MOCK_LECTURE_LOCKED),
-    labWeeks: buildDefaultWeeks(TOTAL_WEEKS),
+    labWeeks: buildDefaultWeeks(TOTAL_WEEKS, MOCK_LAB_LOCKED),
     attachedFile: null,
     notes: "",
+    dayOfWeek: dayCode || undefined,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // โหลดข้อมูลจาก sessionStorage เมื่อกลับมาแก้ไข
+  useEffect(() => {
+    const storedData = sessionStorage.getItem("workloadEntryData");
+    if (storedData) {
+      try {
+        const parsed = JSON.parse(storedData);
+        
+        // Restore lectureWeeks while preserving lock information
+        const defaultLectureWeeks = buildDefaultWeeks(TOTAL_WEEKS, MOCK_LECTURE_LOCKED);
+        const restoredLectureWeeks = parsed.lectureWeeks
+          ? parsed.lectureWeeks.map((week: WeekEntry) => {
+              const lockedInfo = MOCK_LECTURE_LOCKED.find(
+                (l) => l.weekNumber === week.weekNumber,
+              );
+              return {
+                ...week,
+                isLockedByOther: !!lockedInfo,
+                lockedByName: lockedInfo?.lockedByName,
+              };
+            })
+          : defaultLectureWeeks;
+
+        // Restore labWeeks while preserving lock information
+        const defaultLabWeeks = buildDefaultWeeks(TOTAL_WEEKS, MOCK_LAB_LOCKED);
+        const restoredLabWeeks = parsed.labWeeks
+          ? parsed.labWeeks.map((week: WeekEntry) => {
+              const lockedInfo = MOCK_LAB_LOCKED.find(
+                (l) => l.weekNumber === week.weekNumber,
+              );
+              return {
+                ...week,
+                isLockedByOther: !!lockedInfo,
+                lockedByName: lockedInfo?.lockedByName,
+              };
+            })
+          : defaultLabWeeks;
+
+        setFormData((prev) => ({
+          ...prev,
+          courseCode: parsed.courseCode || "",
+          courseName: parsed.courseName || "",
+          creditUnits: parsed.creditUnits || null,
+          degreeLevel: parsed.degreeLevel || "bachelor_regular",
+          lectureTime: parsed.lectureTime || { start: "", end: "" },
+          labTime: parsed.labTime || { start: "", end: "" },
+          faculty: parsed.faculty || "",
+          major: parsed.major || "",
+          year: parsed.year || "",
+          studyGroup: parsed.studyGroup || "",
+          enrolledStudents: parsed.enrolledStudents || "",
+          weeklyStudents: parsed.weeklyStudents || "",
+          lectureWeeks: restoredLectureWeeks,
+          labWeeks: restoredLabWeeks,
+          notes: parsed.notes || "",
+          dayOfWeek: dayCode || parsed.dayOfWeek || prev.dayOfWeek,
+          // attachedFile ไม่สามารถ restore ได้จาก JSON
+          // แต่เราจะเก็บชื่อไฟล์ไว้ให้ผู้ใช้เห็นได้ว่ามีไฟล์แนบไว้
+        }));
+        // เก็บชื่อไฟล์เดิม
+        if (parsed.attachedFileName) {
+          setAttachedFileName(parsed.attachedFileName);
+        }
+      } catch (error) {
+        console.error("Failed to restore form data:", error);
+      }
+    }
+  }, [dayCode]);
 
   const update = <K extends keyof EntryFormData>(
     key: K,
@@ -124,6 +216,29 @@ export function WorkloadEntryForm() {
       setErrors((prev) => {
         const next = { ...prev };
         delete next[key];
+        return next;
+      });
+    }
+  };
+
+  // ── Clear errors when user changes teaching weeks ──
+  const handleLectureWeeksChange = (w: WeekEntry[]) => {
+    setFormData((prev) => ({ ...prev, lectureWeeks: w }));
+    if (errors.lectureWeeks) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.lectureWeeks;
+        return next;
+      });
+    }
+  };
+
+  const handleLabWeeksChange = (w: WeekEntry[]) => {
+    setFormData((prev) => ({ ...prev, labWeeks: w }));
+    if (errors.labWeeks) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.labWeeks;
         return next;
       });
     }
@@ -152,14 +267,151 @@ export function WorkloadEntryForm() {
 
   const mockCourseSearch = (
     code: string,
-  ): Promise<{ name: string; credits: number } | null> =>
+  ): Promise<{
+    name: string;
+    credits: number;
+    faculty: string;
+    major: string;
+    year: string;
+    studyGroup: string;
+    enrolledStudents: number;
+    weeklyStudents: number;
+  } | null> =>
     new Promise((resolve) =>
       setTimeout(() => {
-        const db: Record<string, { name: string; credits: number }> = {
-          CS204: { name: "Data Systems Lab", credits: 3 },
-          CS205: { name: "Web Development", credits: 4 },
-          CS206: { name: "Database Management", credits: 3 },
-          SA101: { name: "System Analyst (SA)", credits: 3 },
+      const db: Record<
+        string,
+        {
+          name: string;
+          credits: number;
+          faculty: string;
+          major: string;
+          year: string;
+          studyGroup: string;
+          enrolledStudents: number;
+          weeklyStudents: number;
+        }
+      > = {
+          "05016202": {
+            name: "Data Systems Lab",
+            credits: 3,
+            faculty: "science",
+            major: "cs",
+            year: "2",
+            studyGroup: "a",
+            enrolledStudents: 67,
+            weeklyStudents: 60,
+          },
+          "05016203": {
+            name: "Web Development",
+            credits: 4,
+            faculty: "science",
+            major: "cs",
+            year: "3",
+            studyGroup: "b",
+            enrolledStudents: 45,
+            weeklyStudents: 40,
+          },
+          "05016204": {
+            name: "Database Management",
+            credits: 3,
+            faculty: "science",
+            major: "cs",
+            year: "2",
+            studyGroup: "c",
+            enrolledStudents: 55,
+            weeklyStudents: 50,
+          },
+          "03011401": {
+            name: "System Analyst (SA)",
+            credits: 3,
+            faculty: "engineering",
+            major: "it",
+            year: "4",
+            studyGroup: "d",
+            enrolledStudents: 30,
+            weeklyStudents: 28,
+          },
+          "01010101": {
+            name: "Calculus I",
+            credits: 4,
+            faculty: "science",
+            major: "am",
+            year: "1",
+            studyGroup: "a",
+            enrolledStudents: 80,
+            weeklyStudents: 75,
+          },
+          "01010102": {
+            name: "Linear Algebra",
+            credits: 3,
+            faculty: "science",
+            major: "am",
+            year: "1",
+            studyGroup: "b",
+            enrolledStudents: 78,
+            weeklyStudents: 72,
+          },
+          "01010201": {
+            name: "Differential Equations",
+            credits: 4,
+            faculty: "science",
+            major: "am",
+            year: "2",
+            studyGroup: "a",
+            enrolledStudents: 65,
+            weeklyStudents: 60,
+          },
+          "01010202": {
+            name: "Numerical Analysis",
+            credits: 3,
+            faculty: "science",
+            major: "am",
+            year: "2",
+            studyGroup: "c",
+            enrolledStudents: 55,
+            weeklyStudents: 50,
+          },
+          "01010301": {
+            name: "Real Analysis",
+            credits: 4,
+            faculty: "science",
+            major: "am",
+            year: "3",
+            studyGroup: "b",
+            enrolledStudents: 40,
+            weeklyStudents: 38,
+          },
+          "01010302": {
+            name: "Abstract Algebra",
+            credits: 4,
+            faculty: "science",
+            major: "am",
+            year: "3",
+            studyGroup: "d",
+            enrolledStudents: 42,
+            weeklyStudents: 40,
+          },
+          "01010401": {
+            name: "Functional Analysis",
+            credits: 3,
+            faculty: "science",
+            major: "am",
+            year: "4",
+            studyGroup: "a",
+            enrolledStudents: 25,
+            weeklyStudents: 24,
+          },
+          "01010402": {
+            name: "Topology",
+            credits: 3,
+            faculty: "science",
+            major: "am",
+            year: "4",
+            studyGroup: "b",
+            enrolledStudents: 28,
+            weeklyStudents: 26,
+          },
         };
         resolve(db[code.toUpperCase()] ?? null);
       }, 500),
@@ -186,6 +438,12 @@ export function WorkloadEntryForm() {
           ...prev,
           courseName: result.name,
           creditUnits: result.credits,
+          faculty: result.faculty,
+          major: result.major,
+          year: result.year,
+          studyGroup: result.studyGroup,
+          enrolledStudents: result.enrolledStudents.toString(),
+          weeklyStudents: result.weeklyStudents.toString(),
         }));
       } else {
         setErrors((prev) => ({
@@ -204,70 +462,95 @@ export function WorkloadEntryForm() {
     const e: Record<string, string> = {};
 
     if (!formData.courseCode)
-      e.courseCode = isTh ? "รหัสวิชา: จำเป็นต้องระบุ" : "Course Code: Required";
-    if (!formData.courseName)
-      e.courseName = isTh
-        ? "ชื่อวิชา: กรุณาค้นหารหัสวิชาก่อน"
-        : "Course Name: Please search for a course first";
-    if (!formData.degreeLevel)
-      e.degreeLevel = isTh ? "ระดับการศึกษา: จำเป็นต้องระบุ" : "Degree Level: Required";
+      e.courseCode = isTh
+        ? "รหัสวิชา: จำเป็นต้องระบุ"
+        : "Course Code: Required";
 
-    // ── Lecture time ──
-    if (!formData.lectureTime.start)
-      e.lectureTimeStart = isTh ? "เวลาสอนทฤษฎี (เริ่มต้น): จำเป็นต้องระบุ" : "Lecture Start Time: Required";
-    if (!formData.lectureTime.end)
-      e.lectureTimeEnd = isTh ? "เวลาสอนทฤษฎี (สิ้นสุด): จำเป็นต้องระบุ" : "Lecture End Time: Required";
-
-    // ── Lab time ──
-    if (!formData.labTime.start)
-      e.labTimeStart = isTh ? "เวลาสอนปฏิบัติ (เริ่มต้น): จำเป็นต้องระบุ" : "Lab Start Time: Required";
-    if (!formData.labTime.end)
-      e.labTimeEnd = isTh ? "เวลาสอนปฏิบัติ (สิ้นสุด): จำเป็นต้องระบุ" : "Lab End Time: Required";
-
-    if (!formData.faculty)
-      e.faculty = isTh ? "คณะ: จำเป็นต้องระบุ" : "Faculty: Required";
-    if (!formData.major)
-      e.major = isTh ? "สาขาวิชา: จำเป็นต้องระบุ" : "Major: Required";
-    if (!formData.year)
-      e.year = isTh ? "ชั้นปี: จำเป็นต้องระบุ" : "Year: Required";
-    if (!formData.group)
-      e.group = isTh ? "กลุ่ม: จำเป็นต้องระบุ" : "Group: Required";
-    if (!formData.enrolledStudents)
-      e.enrolledStudents = isTh
-        ? "จำนวนนักศึกษาที่ลงทะเบียน: จำเป็นต้องระบุ"
-        : "Enrolled Students: Required";
-    if (!formData.weeklyStudents)
-      e.weeklyStudents = isTh
-        ? "นักศึกษารายสัปดาห์: จำเป็นต้องระบุ"
-        : "Weekly Students: Required";
-
-    // ── Teaching weeks: at least 1 selected ──
-    const hasLectureWeek = formData.lectureWeeks.some((w) => w.isSelected);
+    // ── Teaching weeks: at least 1 week with isSelected OR hasSpecialLecturer (excluding locked) ──
+    const selectableLectureWeeks = formData.lectureWeeks.filter(
+      (w) => !w.isLockedByOther,
+    );
+    const hasLectureWeek = selectableLectureWeeks.some(
+      (w) => w.isSelected || w.hasSpecialLecturer,
+    );
     if (!hasLectureWeek)
       e.lectureWeeks = isTh
-        ? "สัปดาห์ที่สอน (ทฤษฎี): กรุณาเลือกอย่างน้อย 1 สัปดาห์"
-        : "Lecture Weeks: Please select at least 1 week";
+        ? "สัปดาห์ที่สอน (ทฤษฎี): กรุณาเลือกสัปดาห์หรือมีวิทยากรพิเศษอย่างน้อย 1 สัปดาห์"
+        : "Lecture Weeks: Please select a week or mark special lecturer for at least 1 week";
 
-    const hasLabWeek = formData.labWeeks.some((w) => w.isSelected);
+    const selectableLabWeeks = formData.labWeeks.filter(
+      (w) => !w.isLockedByOther,
+    );
+    const hasLabWeek = selectableLabWeeks.some(
+      (w) => w.isSelected || w.hasSpecialLecturer,
+    );
     if (!hasLabWeek)
       e.labWeeks = isTh
-        ? "สัปดาห์ที่สอน (ปฏิบัติ): กรุณาเลือกอย่างน้อย 1 สัปดาห์"
-        : "Lab Weeks: Please select at least 1 week";
+        ? "สัปดาห์ที่สอน (ปฏิบัติ): กรุณาเลือกสัปดาห์หรือมีวิทยากรพิเศษอย่างน้อย 1 สัปดาห์"
+        : "Lab Weeks: Please select a week or mark special lecturer for at least 1 week";
 
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleCancel = () =>
-    router.push(`/workload?semester=${semester}&year=${year}`);
+    setShowDeleteDialog(true);
+
+  const handleConfirmDelete = async () => {
+    setIsLoading(true);
+    try {
+      // ลบข้อมูลทั้งหมดจาก sessionStorage
+      sessionStorage.removeItem("workloadEntryData");
+      sessionStorage.removeItem("workloadEntryFile");
+      
+      // ไปหน้า workload form (ข้อมูลภาระงาน)
+      router.push(`/workload/form?semester=${semester}&year=${year}`);
+    } finally {
+      setIsLoading(false);
+      setShowDeleteDialog(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      console.log("Saving workload entry:", formData);
-      await new Promise((r) => setTimeout(r, 1000));
-      router.push(`/workload/review?semester=${semester}&year=${year}`);
+      // Store form data WITHOUT file data to avoid localStorage quota exceeded
+      const serializable = {
+        ...formData,
+        attachedFile: undefined, // File ไม่ serialize ได้
+        attachedFileName: formData.attachedFile?.name ?? null, // เก็บแค่ชื่อ
+        attachedFileData: undefined, // Don't store base64 to avoid quota issues
+        academicYear: year,
+        semester: semester,
+      };
+      sessionStorage.setItem("workloadEntryData", JSON.stringify(serializable));
+      
+      // Store file separately in sessionStorage with key to avoid quota issues
+      if (formData.attachedFile) {
+        try {
+          const reader = new FileReader();
+          await new Promise<void>((resolve) => {
+            reader.onload = (e) => {
+              const base64 = e.target?.result as string;
+              try {
+                sessionStorage.setItem("workloadEntryFile", base64);
+                resolve();
+              } catch (error) {
+                // If file storage fails, continue anyway - user can re-upload
+                console.warn("Could not store file in sessionStorage:", error);
+                resolve();
+              }
+            };
+            reader.readAsDataURL(formData.attachedFile!);
+          });
+        } catch (error) {
+          console.warn("Error storing file:", error);
+          // Continue without file - it's not critical for preview
+        }
+      }
+      
+      router.push(`/workload/check?semester=${semester}&year=${year}${dayCode ? `&day=${dayCode}` : ""}`);
     } finally {
       setIsLoading(false);
     }
@@ -278,7 +561,7 @@ export function WorkloadEntryForm() {
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#f0ebe5]">
-          {isTh ? "เพิ่มข้อมูลการสอน" : "Add Teaching Assignment"}
+          {pageTitle}
         </h1>
         <p className="mt-1 text-base sm:text-lg text-gray-500 dark:text-[#8b7f77]">
           {isTh ? subtitleTh : subtitleEn}
@@ -297,7 +580,22 @@ export function WorkloadEntryForm() {
           errors={errors}
         />
 
-        {/* ── 2. Teaching Info ── */}
+        {/* ── 2. Student Type ── */}
+        <StudentTypeSection
+          faculty={formData.faculty}
+          major={formData.major}
+          year={formData.year}
+          studyGroup={formData.studyGroup}
+          enrolledStudents={formData.enrolledStudents}
+          onFacultyChange={(v) => update("faculty", v)}
+          onMajorChange={(v) => update("major", v)}
+          onYearChange={(v) => update("year", v)}
+          onStudyGroupChange={(v) => update("studyGroup", v)}
+          onEnrolledStudentsChange={(v) => update("enrolledStudents", v)}
+          disableStudentFields={!!formData.courseName}
+        />
+
+        {/* ── 3. Teaching Info ── */}
         <TeachingInfoSection
           degreeLevel={formData.degreeLevel}
           onDegreeLevelChange={(v) => update("degreeLevel", v)}
@@ -308,28 +606,11 @@ export function WorkloadEntryForm() {
           errors={errors}
         />
 
-        {/* ── 3. Student Type ── */}
-        <StudentTypeSection
-          faculty={formData.faculty}
-          onFacultyChange={(v) => update("faculty", v)}
-          major={formData.major}
-          onMajorChange={(v) => update("major", v)}
-          year={formData.year}
-          onYearChange={(v) => update("year", v)}
-          group={formData.group}
-          onGroupChange={(v) => update("group", v)}
-          enrolledStudents={formData.enrolledStudents}
-          onEnrolledStudentsChange={(v) => update("enrolledStudents", v)}
-          weeklyStudents={formData.weeklyStudents}
-          onWeeklyStudentsChange={(v) => update("weeklyStudents", v)}
-          errors={errors}
-        />
-
         {/* ── 4. Teaching Weeks — Lecture ── */}
         <TeachingWeeksSection
           type="lecture"
           weeks={formData.lectureWeeks}
-          onWeeksChange={(w) => update("lectureWeeks", w)}
+          onWeeksChange={handleLectureWeeksChange}
           hasError={!!errors.lectureWeeks}
           errorMessage={errors.lectureWeeks}
         />
@@ -338,7 +619,7 @@ export function WorkloadEntryForm() {
         <TeachingWeeksSection
           type="lab"
           weeks={formData.labWeeks}
-          onWeeksChange={(w) => update("labWeeks", w)}
+          onWeeksChange={handleLabWeeksChange}
           hasError={!!errors.labWeeks}
           errorMessage={errors.labWeeks}
         />
@@ -346,7 +627,17 @@ export function WorkloadEntryForm() {
         {/* ── 6. Additional ── */}
         <AdditionalSection
           attachedFile={formData.attachedFile}
-          onFileChange={(f) => update("attachedFile", f)}
+          onFileChange={(f) => {
+            update("attachedFile", f);
+            // ลบชื่อไฟล์เดิมเมื่อ upload ไฟล์ใหม่
+            if (f) {
+              setAttachedFileName(null);
+            } else {
+              // ลบชื่อไฟล์เดิมเมื่อกดปุ่มลบ
+              setAttachedFileName(null);
+            }
+          }}
+          attachedFileName={attachedFileName}
           notes={formData.notes}
           onNotesChange={(v) => update("notes", v)}
         />
@@ -360,9 +651,11 @@ export function WorkloadEntryForm() {
                 : "Please fix the following errors:"}
             </p>
             <ul className="list-inside list-disc space-y-0.5 text-sm text-red-600 dark:text-red-400">
-              {Object.values(errors).map((err, i) => (
-                <li key={i}>{err}</li>
-              ))}
+              {Object.values(errors)
+                .filter((err) => err.trim() !== "")
+                .map((err, i) => (
+                  <li key={i}>{err}</li>
+                ))}
             </ul>
           </div>
         )}
@@ -373,10 +666,23 @@ export function WorkloadEntryForm() {
             type="button"
             onClick={handleCancel}
             disabled={isLoading}
-            className="flex-1 h-10 sm:h-12 rounded-full bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 font-semibold text-sm sm:text-base gap-2 dark:bg-[#4a4441] dark:hover:bg-[#5a5350] dark:disabled:bg-[#3d3533] dark:text-[#f0ebe5] cursor-pointer transition-colors"
+            className={`flex-1 h-10 sm:h-12 rounded-full font-semibold text-sm sm:text-base gap-2 cursor-pointer transition-colors ${
+              isEditMode
+                ? "bg-red-200 hover:bg-red-300 disabled:bg-red-100 text-red-800 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:disabled:bg-red-900/20 dark:text-red-400"
+                : "bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-800 dark:bg-[#4a4441] dark:hover:bg-[#5a5350] dark:disabled:bg-[#3d3533] dark:text-[#f0ebe5]"
+            }`}
           >
-            <X className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>{isTh ? "ยกเลิก" : "Cancel"}</span>
+            {isEditMode ? (
+              <>
+                <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span>{isTh ? "ลบวิชา" : "Delete"}</span>
+              </>
+            ) : (
+              <>
+                <span>✕</span>
+                <span>{isTh ? "ยกเลิก" : "Cancel"}</span>
+              </>
+            )}
           </Button>
 
           <Button
@@ -398,6 +704,29 @@ export function WorkloadEntryForm() {
           </Button>
         </div>
       </div>
+
+      {/* ── Confirmation Dialog for Delete/Cancel ── */}
+      <ConfirmationDialog
+        isOpen={showDeleteDialog}
+        title={isEditMode 
+          ? (isTh ? "ยืนยันการลบวิชา" : "Confirm Delete")
+          : (isTh ? "ยืนยันการยกเลิก" : "Confirm Cancel")
+        }
+        description={isEditMode
+          ? (isTh 
+            ? "คุณแน่ใจที่จะลบวิชานี้หรือไม่? ข้อมูลทั้งหมดจะถูกลบและไม่สามารถกู้คืนได้"
+            : "Are you sure you want to delete this course? All data will be deleted and cannot be recovered.")
+          : (isTh 
+            ? "คุณแน่ใจที่จะยกเลิกการเพิ่มวิชาใหม่หรือไม่? ข้อมูลที่กรอกจะถูกลบทั้งหมด"
+            : "Are you sure you want to cancel adding a new course? All entered data will be deleted.")
+        }
+        confirmText={isEditMode ? (isTh ? "ยืนยันการลบ" : "Delete") : (isTh ? "ยืนยันการยกเลิก" : "Cancel")}
+        cancelText={isTh ? "กลับไป" : "Go Back"}
+        variant={isEditMode ? "error" : "warning"}
+        isLoading={isLoading}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
     </div>
   );
 }

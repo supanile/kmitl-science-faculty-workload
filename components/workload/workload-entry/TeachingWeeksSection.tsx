@@ -10,6 +10,7 @@ export interface WeekEntry {
   hasSpecialLecturer: boolean; // ← checkbox state (unchanged)
   isLockedByOther?: boolean;
   lockedByName?: string;
+  coLecturerName?: string;
 }
 
 interface TeachingWeeksSectionProps {
@@ -39,18 +40,19 @@ function WeekTile({
 }) {
   const { t } = useTranslation();
   const locked = !!week.isLockedByOther;
+  const hasSpecialLecturer = !!week.hasSpecialLecturer;
 
   return (
     <div className="flex flex-col gap-2">
       {/* ── Week Card: controls isSelected only ── */}
       <button
         type="button"
-        onClick={() => !locked && onCardClick()}
+        onClick={() => !locked && !hasSpecialLecturer && onCardClick()}
         className={[
           "rounded-xl border py-3 px-2 text-center select-none transition-colors",
           week.isSelected
             ? "bg-orange-100 border-orange-300 dark:bg-[#C96442]/30 dark:border-[#C96442] cursor-pointer"
-            : locked
+            : locked || hasSpecialLecturer
               ? "bg-gray-100 border-gray-200 dark:bg-[#3d3533] dark:border-[#4a4441] cursor-not-allowed"
               : "bg-[#f7f5f3] border-gray-200 dark:bg-[#3d3533] dark:border-[#4a4441] hover:bg-orange-100 hover:border-orange-300 dark:hover:bg-[#C96442]/20 dark:hover:border-[#C96442] cursor-pointer",
         ].join(" ")}
@@ -58,7 +60,7 @@ function WeekTile({
         <p
           className={[
             "text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5",
-            week.isSelected || locked
+            week.isSelected || locked || hasSpecialLecturer
               ? "text-[#F27F0D] dark:text-[#C96442]"
               : "text-gray-400 dark:text-[#8b7f77]",
           ].join(" ")}
@@ -68,7 +70,7 @@ function WeekTile({
         <p
           className={[
             "text-xl sm:text-2xl font-black leading-none",
-            week.isSelected || locked
+            week.isSelected || locked || hasSpecialLecturer
               ? "text-[#F27F0D] dark:text-[#C96442]"
               : "text-gray-800 dark:text-[#f0ebe5]",
           ].join(" ")}
@@ -160,7 +162,9 @@ export function TeachingWeeksSection({
   const handleCheckboxChange = (weekNumber: number, checked: boolean) => {
     onWeeksChange(
       weeks.map((w) =>
-        w.weekNumber === weekNumber ? { ...w, hasSpecialLecturer: checked } : w,
+        w.weekNumber === weekNumber
+          ? { ...w, hasSpecialLecturer: checked, isSelected: checked ? false : w.isSelected }
+          : w,
       ),
     );
   };
@@ -273,6 +277,7 @@ export function buildDefaultWeeks(
       hasSpecialLecturer: false,
       isLockedByOther: !!locked,
       lockedByName: locked?.lockedByName,
+      coLecturerName: locked?.lockedByName,
     };
   });
 }

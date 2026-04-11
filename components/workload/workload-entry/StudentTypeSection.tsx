@@ -3,67 +3,33 @@
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Users } from "lucide-react";
-import { AppSelect } from "@/components/ui/AppSelect";
 
 interface StudentTypeSectionProps {
   faculty: string;
-  onFacultyChange: (value: string) => void;
   major: string;
-  onMajorChange: (value: string) => void;
   year: string;
-  onYearChange: (value: string) => void;
-  group: string;
-  onGroupChange: (value: string) => void;
+  studyGroup: string;
   enrolledStudents: string;
-  onEnrolledStudentsChange: (value: string) => void;
-  weeklyStudents: string;
-  onWeeklyStudentsChange: (value: string) => void;
-  errors?: Record<string, string>;
-}
-
-/** Wraps AppSelect with a red ring (on the select only) + error message below */
-function FieldWrapper({
-  hasError,
-  errorMessage,
-  children,
-}: {
-  hasError: boolean;
-  errorMessage?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div
-        className={[
-          "rounded-xl transition-all",
-          hasError ? "ring-2 ring-red-400 dark:ring-red-500" : "",
-        ].join(" ")}
-      >
-        {children}
-      </div>
-      {hasError && errorMessage && (
-        <p className="text-xs text-red-500 dark:text-red-400 mt-1 px-1">
-          {errorMessage}
-        </p>
-      )}
-    </div>
-  );
+  onFacultyChange?: (value: string) => void;
+  onMajorChange?: (value: string) => void;
+  onYearChange?: (value: string) => void;
+  onStudyGroupChange?: (value: string) => void;
+  onEnrolledStudentsChange?: (value: string) => void;
+  disableStudentFields?: boolean; // เมื่อกรอกอัตโนมัติจากการค้นหา
 }
 
 export function StudentTypeSection({
   faculty,
-  onFacultyChange,
   major,
-  onMajorChange,
   year,
-  onYearChange,
-  group,
-  onGroupChange,
+  studyGroup,
   enrolledStudents,
+  onFacultyChange,
+  onMajorChange,
+  onYearChange,
+  onStudyGroupChange,
   onEnrolledStudentsChange,
-  weeklyStudents,
-  onWeeklyStudentsChange,
-  errors = {},
+  disableStudentFields = false,
 }: StudentTypeSectionProps) {
   const { t } = useTranslation();
 
@@ -77,6 +43,7 @@ export function StudentTypeSection({
     { value: "cs", label: t("WorkloadEntry.computerScience") },
     { value: "it", label: t("WorkloadEntry.informationTechnology") },
     { value: "ds", label: t("WorkloadEntry.dataScience") },
+    { value: "am", label: t("WorkloadEntry.appliedMathematics") },
   ];
 
   const years = [
@@ -93,6 +60,18 @@ export function StudentTypeSection({
     { value: "d", label: t("WorkloadEntry.group4") },
   ];
 
+  const getFacultyLabel = (value: string) =>
+    faculties.find((f) => f.value === value)?.label || "-";
+  const getMajorLabel = (value: string) =>
+    majors.find((m) => m.value === value)?.label || "-";
+  const getYearLabel = (value: string) =>
+    years.find((y) => y.value === value)?.label || "-";
+  const getGroupLabel = (value: string) =>
+    groups.find((g) => g.value === value)?.label || "-";
+
+  // ตรวจสอบว่ามี onChange handler ไหม - ถ้ามี = editable, ถ้าไม่มี = readonly
+  const isEditable = !!(onFacultyChange || onMajorChange || onYearChange || onStudyGroupChange);
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5 dark:border-[#4a4441] dark:bg-[#302826] border-l-4 border-l-orange-400 dark:border-l-[#C96442]">
       {/* Section Header */}
@@ -105,118 +84,128 @@ export function StudentTypeSection({
         </h2>
       </div>
 
-      {/* Dropdowns Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5">
+      {/* Display-only Grid: 3 columns on top */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
         {/* Faculty */}
         <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.faculty")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.faculty")}
           </Label>
-          <FieldWrapper hasError={!!errors.faculty} errorMessage={errors.faculty}>
-            <AppSelect
+          {isEditable && !disableStudentFields ? (
+            <select
               value={faculty}
-              onChange={onFacultyChange}
-              options={faculties}
-              placeholder={t("WorkloadEntry.selectFaculty")}
-            />
-          </FieldWrapper>
+              onChange={(e) => onFacultyChange?.(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-700 h-10 sm:h-11 outline-none transition-colors hover:border-orange-300 focus:border-orange-500 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442]"
+            >
+              <option value="">เลือกคณะ</option>
+              {faculties.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] h-10 sm:h-11 flex items-center">
+              {faculty ? getFacultyLabel(faculty) : ""}
+            </div>
+          )}
         </div>
 
         {/* Major */}
         <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.major")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.major")}
           </Label>
-          <FieldWrapper hasError={!!errors.major} errorMessage={errors.major}>
-            <AppSelect
+          {isEditable && !disableStudentFields ? (
+            <select
               value={major}
-              onChange={onMajorChange}
-              options={majors}
-              placeholder={t("WorkloadEntry.selectMajor")}
-            />
-          </FieldWrapper>
+              onChange={(e) => onMajorChange?.(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-700 h-10 sm:h-11 outline-none transition-colors hover:border-orange-300 focus:border-orange-500 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442]"
+            >
+              <option value="">เลือกสาขาวิชา</option>
+              {majors.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] h-10 sm:h-11 flex items-center">
+              {major ? getMajorLabel(major) : ""}
+            </div>
+          )}
         </div>
 
         {/* Year */}
         <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.year")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.year")}
           </Label>
-          <FieldWrapper hasError={!!errors.year} errorMessage={errors.year}>
-            <AppSelect
+          {isEditable && !disableStudentFields ? (
+            <select
               value={year}
-              onChange={onYearChange}
-              options={years}
-              placeholder={t("WorkloadEntry.selectYear")}
-            />
-          </FieldWrapper>
-        </div>
-
-        {/* Group */}
-        <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.group")} <span className="text-red-500">*</span>
-          </Label>
-          <FieldWrapper hasError={!!errors.group} errorMessage={errors.group}>
-            <AppSelect
-              value={group}
-              onChange={onGroupChange}
-              options={groups}
-              placeholder={t("WorkloadEntry.selectGroup")}
-            />
-          </FieldWrapper>
+              onChange={(e) => onYearChange?.(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-700 h-10 sm:h-11 outline-none transition-colors hover:border-orange-300 focus:border-orange-500 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442]"
+            >
+              <option value="">เลือกชั้นปี</option>
+              {years.map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] h-10 sm:h-11 flex items-center">
+              {year ? getYearLabel(year) : ""}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Student Count Inputs */}
+      {/* Display-only Grid: 2 columns on bottom */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        {/* Enrolled Students */}
+        {/* Group */}
         <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.enrolledStudents")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.studyGroup")}
           </Label>
-          <input
-            type="number"
-            value={enrolledStudents}
-            onChange={(e) => onEnrolledStudentsChange(e.target.value)}
-            placeholder="e.g., 67"
-            min="0"
-            className={[
-              "w-full px-3.5 py-2.5 rounded-xl border-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 dark:text-[#f0ebe5] dark:placeholder:text-[#5a5350]",
-              errors.enrolledStudents
-                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-red-500 dark:bg-red-900/20 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-                : "border-gray-200 bg-white hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-[#4a4441] dark:bg-[#3d3533] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442] dark:focus:ring-[#C96442]/20",
-            ].join(" ")}
-          />
-          {errors.enrolledStudents && (
-            <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-              {errors.enrolledStudents}
-            </p>
+          {isEditable && !disableStudentFields ? (
+            <select
+              value={studyGroup}
+              onChange={(e) => onStudyGroupChange?.(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-700 h-10 sm:h-11 outline-none transition-colors hover:border-orange-300 focus:border-orange-500 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442]"
+            >
+              <option value="">เลือกกลุ่มเรียน</option>
+              {groups.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] h-10 sm:h-11 flex items-center">
+              {studyGroup ? getGroupLabel(studyGroup) : ""}
+            </div>
           )}
         </div>
 
-        {/* Weekly Students */}
+        {/* Enrolled Students */}
         <div className="space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.weeklyStudents")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.enrolledStudents")}
           </Label>
-          <input
-            type="number"
-            value={weeklyStudents}
-            onChange={(e) => onWeeklyStudentsChange(e.target.value)}
-            placeholder="e.g., 67"
-            min="0"
-            className={[
-              "w-full px-3.5 py-2.5 rounded-xl border-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 dark:text-[#f0ebe5] dark:placeholder:text-[#5a5350]",
-              errors.weeklyStudents
-                ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-red-500 dark:bg-red-900/20 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-                : "border-gray-200 bg-white hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-[#4a4441] dark:bg-[#3d3533] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442] dark:focus:ring-[#C96442]/20",
-            ].join(" ")}
-          />
-          {errors.weeklyStudents && (
-            <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-              {errors.weeklyStudents}
-            </p>
+          {isEditable && !disableStudentFields ? (
+            <input
+              type="number"
+              value={enrolledStudents}
+              onChange={(e) => onEnrolledStudentsChange?.(e.target.value)}
+              placeholder="0"
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-700 h-10 sm:h-11 outline-none transition-colors hover:border-orange-300 focus:border-orange-500 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442]"
+            />
+          ) : (
+            <div className="px-3.5 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 text-sm text-gray-700 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#e8e0d8] h-10 sm:h-11 flex items-center">
+              {enrolledStudents || ""}
+            </div>
           )}
         </div>
       </div>

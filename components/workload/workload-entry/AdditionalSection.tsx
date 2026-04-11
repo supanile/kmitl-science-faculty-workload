@@ -9,6 +9,7 @@ import { Paperclip, X, UploadCloud, FileText } from "lucide-react";
 interface AdditionalSectionProps {
   attachedFile: File | null;
   onFileChange: (file: File | null) => void;
+  attachedFileName?: string | null; // แสดงชื่อไฟล์เดิมเมื่อกลับมาแก้ไข
   notes: string;
   onNotesChange: (value: string) => void;
 }
@@ -16,6 +17,7 @@ interface AdditionalSectionProps {
 export function AdditionalSection({
   attachedFile,
   onFileChange,
+  attachedFileName,
   notes,
   onNotesChange,
 }: AdditionalSectionProps) {
@@ -65,11 +67,11 @@ export function AdditionalSection({
 
         {/* ── Attachment ── */}
         <div className="flex flex-col gap-1.5 sm:gap-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.attachment")}
           </Label>
 
-          {attachedFile ? (
+          {attachedFile || attachedFileName ? (
             /* ── File card ── */
             <div className="flex items-center gap-3 flex-1 w-full px-3 sm:px-4 py-3 rounded-xl border-2 border-orange-300 bg-orange-50 dark:border-[#C96442]/50 dark:bg-[#C96442]/10 transition-colors">
               <span className="shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-lg bg-orange-100 dark:bg-[#C96442]/20">
@@ -77,10 +79,10 @@ export function AdditionalSection({
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800 dark:text-[#f0ebe5] truncate leading-tight">
-                  {attachedFile.name}
+                  {attachedFile?.name || attachedFileName}
                 </p>
                 <p className="text-xs text-gray-400 dark:text-[#8b7f77] mt-0.5">
-                  {formatBytes(attachedFile.size)}
+                  {attachedFile ? formatBytes(attachedFile.size) : t("WorkloadEntry.fileAttached")}
                 </p>
               </div>
               <button
@@ -148,14 +150,13 @@ export function AdditionalSection({
 
         {/* ── Notes: flex-1 textarea stretches to fill column height ── */}
         <div className="flex flex-col gap-1.5 sm:gap-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.notes")}
           </Label>
           <textarea
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
-            placeholder="-"
-            className="flex-1 w-full min-h-[120px] px-3 sm:px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 resize-none outline-none transition-all duration-200 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#f0ebe5] dark:placeholder:text-[#5a5350] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442] dark:focus:ring-[#C96442]/20"
+            className="flex-1 w-full min-h-[120px] px-3 sm:px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm text-gray-900 resize-none outline-none transition-all duration-200 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#f0ebe5] dark:hover:border-[#C96442]/60 dark:focus:border-[#C96442] dark:focus:ring-[#C96442]/20"
           />
         </div>
 
