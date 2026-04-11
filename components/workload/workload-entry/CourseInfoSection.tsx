@@ -40,7 +40,7 @@ export function CourseInfoSection({
       <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
         {/* Course Code Input */}
         <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.courseCode")} <span className="text-red-500">*</span>
           </Label>
           <div className="flex gap-2">
@@ -48,7 +48,7 @@ export function CourseInfoSection({
               type="text"
               value={courseCode}
               onChange={(e) => onCourseCodeChange(e.target.value.toUpperCase())}
-              placeholder={t("WorkloadEntry.courseCodePlaceholder")}
+              placeholder="กรอกรหัสวิชา เช่น 05016202"
               className={[
                 "flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border text-sm sm:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 dark:text-[#f0ebe5] dark:placeholder:text-[#8b7f77] transition-colors",
                 errors.courseCode
@@ -73,8 +73,8 @@ export function CourseInfoSection({
 
         {/* Course Name (Read-only) */}
         <div className="flex-2 min-w-0 space-y-1.5 sm:space-y-2">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-            {t("WorkloadEntry.courseName")} <span className="text-red-500">*</span>
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
+            {t("WorkloadEntry.courseName")}
           </Label>
           <div
             className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg border text-sm sm:text-base h-10 sm:h-11 flex items-center overflow-hidden transition-colors ${
@@ -85,9 +85,7 @@ export function CourseInfoSection({
                   : "border-gray-300 bg-gray-50 text-gray-600 dark:border-[#4a4441] dark:bg-[#3d3533] dark:text-[#8b7f77]"
             }`}
           >
-            <span className="truncate">
-              {courseName || t("WorkloadEntry.courseCodePlaceholder")}
-            </span>
+            {courseName && <span className="truncate">{courseName}</span>}
           </div>
           {errors.courseName && (
             <p className="text-xs text-red-500 dark:text-red-400 mt-1">
@@ -98,7 +96,7 @@ export function CourseInfoSection({
 
         {/* Credit Units Badge (Read-only) */}
         <div className="shrink-0 space-y-1.5 sm:space-y-2 sm:w-24">
-          <Label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-[#e8e0d8] sm:pl-5.5">
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8] sm:pl-5">
             {t("WorkloadEntry.creditUnits")}
           </Label>
           <div className="flex gap-2 h-10 sm:h-11 items-center justify-start sm:justify-center">

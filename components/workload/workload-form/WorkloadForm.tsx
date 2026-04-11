@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/hooks/use-language";
@@ -19,16 +19,29 @@ interface DayColumn {
     time: string;
     room: string;
     studentCount: number;
+    status?: 'pending' | 'approved' | 'rejected' | 'draft' | 'selected';
+    lectureWeeks?: number[];
+    labWeeks?: number[];
   }>;
 }
 
 interface WorkloadFormProps {
-  onDownloadExcel?: () => void;
   onConfirm?: () => void;
 }
 
+interface SavedCourse {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  time: string;
+  room: string;
+  studentCount: number;
+  dayOfWeek: string;
+  semester: string;
+  year: string;
+}
+
 export function WorkloadForm({
-  onDownloadExcel = () => console.log("Download Excel clicked"),
   onConfirm = () => console.log("Confirm clicked"),
 }: WorkloadFormProps) {
   const router = useRouter();
@@ -40,8 +53,8 @@ export function WorkloadForm({
 
   const isTh = currentLanguage === "th";
 
-  // Mock data for demonstration
-  const [columns] = useState<DayColumn[]>([
+  // Mock data for demonstration with state management
+  const [columns, setColumns] = useState<DayColumn[]>([
     {
       dayCode: "sunday",
       dayName: "อาทิตย์",
@@ -53,11 +66,14 @@ export function WorkloadForm({
       courses: [
         {
           id: "1",
-          courseCode: "CS204",
+          courseCode: "05016208",
           courseName: "Data Systems Lab",
           time: "13:00 - 16:00",
           room: "Lab : A",
           studentCount: 48,
+          status: "pending",
+          lectureWeeks: [1, 2, 3, 4, 5],
+          labWeeks: [1, 2, 3, 4, 5, 6, 7],
         },
       ],
     },
@@ -67,11 +83,14 @@ export function WorkloadForm({
       courses: [
         {
           id: "2",
-          courseCode: "CS204",
+          courseCode: "05016209",
           courseName: "Data Systems Lab",
           time: "13:00 - 16:00",
           room: "Lab : A",
           studentCount: 48,
+          status: "approved",
+          lectureWeeks: [1, 2, 3, 4, 5, 6, 7, 8],
+          labWeeks: [1, 2, 3, 4, 5, 6, 7, 8],
         },
         {
           id: "3",
@@ -80,6 +99,9 @@ export function WorkloadForm({
           time: "09:00 - 11:00",
           room: "Room 101",
           studentCount: 35,
+          status: "rejected",
+          lectureWeeks: [1, 2, 3],
+          labWeeks: [],
         },
         {
           id: "4",
@@ -88,6 +110,9 @@ export function WorkloadForm({
           time: "11:00 - 13:00",
           room: "Room 102",
           studentCount: 40,
+          status: "draft",
+          lectureWeeks: [],
+          labWeeks: [],
         },
         {
           id: "5",
@@ -96,6 +121,9 @@ export function WorkloadForm({
           time: "13:00 - 15:00",
           room: "Lab : B",
           studentCount: 32,
+          status: "selected",
+          lectureWeeks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+          labWeeks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         },
         {
           id: "6",
@@ -104,6 +132,9 @@ export function WorkloadForm({
           time: "15:00 - 17:00",
           room: "Lab : C",
           studentCount: 28,
+          status: "draft",
+          lectureWeeks: [3, 4, 5],
+          labWeeks: [3, 4, 5, 6, 7],
         },
         {
           id: "7",
@@ -112,6 +143,9 @@ export function WorkloadForm({
           time: "09:00 - 10:30",
           room: "Room 103",
           studentCount: 25,
+          status: "selected",
+          lectureWeeks: [6, 7, 8, 9, 10],
+          labWeeks: [6, 7, 8, 9, 10, 11],
         },
         {
           id: "11",
@@ -120,6 +154,9 @@ export function WorkloadForm({
           time: "16:00 - 17:30",
           room: "Room 107",
           studentCount: 20,
+          status: "draft",
+          lectureWeeks: [],
+          labWeeks: [],
         },
       ],
     },
@@ -134,11 +171,14 @@ export function WorkloadForm({
       courses: [
         {
           id: "4",
-          courseCode: "CS204",
+          courseCode: "05016211",
           courseName: "Data Systems Lab",
           time: "13:00 - 16:00",
           room: "Lab : A",
           studentCount: 48,
+          status: "draft",
+          lectureWeeks: [],
+          labWeeks: [],
         },
       ],
     },
@@ -148,11 +188,14 @@ export function WorkloadForm({
       courses: [
         {
           id: "5",
-          courseCode: "CS204",
+          courseCode: "05016210",
           courseName: "Data Systems Lab",
           time: "13:00 - 16:00",
           room: "Lab : A",
           studentCount: 48,
+          status: "selected",
+          lectureWeeks: [8, 9, 10, 11, 12, 13],
+          labWeeks: [8, 9, 10, 11, 12, 13, 14, 15],
         },
       ],
     },
@@ -162,6 +205,47 @@ export function WorkloadForm({
       courses: [],
     },
   ]);
+
+  // Load saved courses from sessionStorage when component mounts
+  useEffect(() => {
+    const savedCoursesStr = sessionStorage.getItem("workloadCourses");
+    console.log("Checking for saved courses in sessionStorage...");
+    
+    if (savedCoursesStr) {
+      try {
+        const savedCourses: SavedCourse[] = JSON.parse(savedCoursesStr);
+        console.log("✅ Loaded saved courses:", savedCourses);
+        
+        // Update columns with saved courses
+        setColumns((prevColumns) => {
+          const updatedColumns = prevColumns.map((col) => {
+            const coursesToAdd = savedCourses.filter((course) => {
+              const matches = course.dayOfWeek === col.dayCode;
+              console.log(`Filtering course ${course.courseCode} (dayOfWeek=${course.dayOfWeek}) for ${col.dayCode}: ${matches}`);
+              return matches;
+            });
+            
+            return {
+              ...col,
+              courses: [
+                ...col.courses,
+                ...coursesToAdd,
+              ],
+            };
+          });
+          console.log("Updated columns:", updatedColumns);
+          return updatedColumns;
+        });
+        
+        // Clear saved courses after loading
+        sessionStorage.removeItem("workloadCourses");
+      } catch (error) {
+        console.error("Failed to load saved courses:", error);
+      }
+    } else {
+      console.log("❌ No saved courses found in sessionStorage");
+    }
+  }, []);
 
   const currentYear = 2569;
   const academicYearOptions = Array.from({ length: 6 }, (_, i) => {
@@ -181,13 +265,8 @@ export function WorkloadForm({
 
   const handleAddCourse = (dayCode: string) => {
     router.push(
-      `/workload/entry?day=${dayCode}&semester=${semester}&year=${academicYear}`,
+      `/workload/entry?day=${dayCode}&semester=${semester}&year=${academicYear}&mode=add`,
     );
-  };
-
-  const handleDownloadExcel = async () => {
-    console.log("Downloading Excel for:", { academicYear, semester });
-    onDownloadExcel();
   };
 
   const handleConfirm = async () => {
@@ -255,12 +334,13 @@ export function WorkloadForm({
               : `Term ${semester}/${parseInt(academicYear) - 543}`
           }
           onAddClick={handleAddCourse}
+          semester={semester}
+          year={academicYear}
         />
       </div>
 
       {/* Action Buttons */}
       <ActionButtons
-        onDownloadExcel={handleDownloadExcel}
         onConfirm={handleConfirm}
         isLoading={isLoading}
       />
