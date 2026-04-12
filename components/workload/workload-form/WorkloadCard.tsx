@@ -311,15 +311,26 @@ export function WorkloadCard({
         )}
       </div>
 
-      {/* ── Action Buttons ── */}
-      <div className={`flex gap-1 sm:gap-2 pt-2 sm:pt-3 border-t z-10 ${statusInfo.dividerColor}`}>
+      {/* ── Action Buttons & Status Badge ── */}
+      <div className={`flex flex-col gap-2 pt-2 sm:pt-3 border-t z-10 ${statusInfo.dividerColor}`}>
+        {/* Edit Button */}
         <button
           onClick={handleEdit}
-          className={`flex-1 flex items-center justify-center py-2 px-2 rounded-full border ${statusInfo.buttonBorderColor} ${statusInfo.buttonBgColor} ${statusInfo.buttonTextColor} transition-colors duration-200 group touch-manipulation`}
+          className={`flex items-center justify-center py-2 px-2 rounded-full border ${statusInfo.buttonBorderColor} ${statusInfo.buttonBgColor} ${statusInfo.buttonTextColor} transition-colors duration-200 group touch-manipulation`}
           title="Edit"
         >
           <Pen className="h-4 w-4 group-hover:scale-110 group-active:scale-95 transition-transform" />
         </button>
+
+        {/* Status Badge */}
+        <div className={`flex items-center justify-start gap-2 py-2 px-3 rounded-full border ${statusInfo.cardBorderColor} ${statusInfo.bgColor}`}>
+          <div className={statusInfo.textColor}>
+            {statusInfo.icon}
+          </div>
+          <span className={`text-xs sm:text-sm font-semibold ${statusInfo.textColor}`}>
+            {statusInfo.label}
+          </span>
+        </div>
       </div>
     </div>
   );
