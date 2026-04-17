@@ -254,13 +254,13 @@ export function WorkloadHistoryDetailContent({
     courses:
       activeDay === day
         ? scheduleSessions.map(({ type, session }, index) => ({
-            id: `${detail.id}-${day}-${type}-${index}`,
-            courseCode: detail.courseCode,
-            courseName: detail.courseName,
-            time: `${session.startTime} - ${session.endTime}`,
-            room: `${type === 'theory' ? t('WorkloadHistoryDetail.sessionTheory') : t('WorkloadHistoryDetail.sessionLab')} • ${sectionLabel}`,
-            studentCount: detail.studentsRegistered,
-          }))
+          id: `${detail.id}-${day}-${type}-${index}`,
+          courseCode: detail.courseCode,
+          courseName: detail.courseName,
+          time: `${session.startTime} - ${session.endTime}`,
+          room: `${type === 'theory' ? t('WorkloadHistoryDetail.sessionTheory') : t('WorkloadHistoryDetail.sessionLab')} • ${sectionLabel}`,
+          studentCount: detail.studentsRegistered,
+        }))
         : [],
   }));
 
@@ -358,7 +358,7 @@ export function WorkloadHistoryDetailContent({
             <SidebarField label={t('WorkloadHistoryDetail.courseName')} value={detail.courseName} />
             <SidebarField label={t('WorkloadHistoryDetail.courseCode')} value={detail.courseCode} />
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+            <div className="grid gap-4 grid-cols-2 grid-row-1">
               <SidebarField label={t('WorkloadHistoryDetail.credits')} value={detail.credits} />
               <SidebarField label={t('WorkloadHistoryDetail.degree')} value={detail.degree} />
               <SidebarField label={t('WorkloadHistoryDetail.theoryTime')} value={theoryTimeText} />
