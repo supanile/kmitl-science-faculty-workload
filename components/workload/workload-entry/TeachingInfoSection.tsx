@@ -59,7 +59,7 @@ function TimePanel({
           {title}
         </h3>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4">
         <div className="space-y-2">
           <Label className="text-sm sm:text-base font-medium text-gray-600 dark:text-[#c8bfb8]">
             {t("WorkloadEntry.startTime")}
@@ -136,7 +136,7 @@ export function TeachingInfoSection({
         </Label>
         <div
           className={[
-            "grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl p-1 transition-colors",
+            "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 rounded-xl p-1 transition-colors",
             errors.degreeLevel
               ? "ring-2 ring-red-400 dark:ring-red-500 bg-red-50/50 dark:bg-red-900/10"
               : "",
@@ -179,7 +179,7 @@ export function TeachingInfoSection({
       </div>
 
       {/* Time Panels */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <TimePanel
           title={t("WorkloadEntry.lectureTime")}
           time={lectureTime}

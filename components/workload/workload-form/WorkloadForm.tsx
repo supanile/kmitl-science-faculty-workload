@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "@/hooks/use-language";
+<<<<<<< HEAD
 import type { SavedCourse } from "@/lib/workload/entries";
+=======
+import { ConfirmationDialog } from "@/components/alerts";
+>>>>>>> a44031f (feat: Enhance Workload Management UI and Functionality)
 import { SelectGroup } from "./SelectGroup";
 import { WeeklyGrid } from "./WeeklyGrid";
 import { ActionButtons } from "./ActionButtons";
@@ -52,6 +56,111 @@ function mapEntriesToColumns(entries: SavedCourse[]): DayColumn[] {
   }));
 }
 
+// ============================================
+// Helper: Map day code to numeric value
+// ============================================
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const dayCodeToDayNumber = (dayCode: string): string => {
+  const dayMap: Record<string, string> = {
+    sunday: "0",
+    monday: "1",
+    tuesday: "2",
+    wednesday: "3",
+    thursday: "4",
+    friday: "5",
+    saturday: "6",
+  };
+  return dayMap[dayCode] || dayCode;
+};
+
+// ============================================
+// Helper: Fetch courses from API
+// ============================================
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fetchCoursesFromAPI = async (
+  subjectId: string,
+  year: string,
+  semester: string
+): Promise<DayColumn["courses"]> => {
+  try {
+    const response = await fetch(
+      `/api/workload/course?subjectId=${encodeURIComponent(subjectId)}&year=${encodeURIComponent(year)}&semester=${encodeURIComponent(semester)}`
+    );
+
+    if (!response.ok) {
+      console.error("Failed to fetch courses:", response.statusText);
+      return [];
+    }
+
+    const data = await response.json() as { 
+      data?: {
+        subjectId: string;
+        courseNameTh?: string;
+        courseNameEn?: string;
+        offerings?: Array<{
+          sections: Array<{
+            teachTableId: string;
+            teachTimeStart: string;
+            teachTimeEnd: string;
+            room?: string;
+            enrolledCount?: number;
+          }>;
+        }>;
+      };
+      error?: string;
+    };
+
+    // If API returns an error
+    if (data.error) {
+      console.error("API error:", data.error);
+      return [];
+    }
+
+    // Map API response to course format
+    const courses: DayColumn["courses"] = [];
+    const courseData = data.data;
+
+    if (courseData?.offerings) {
+      courseData.offerings.forEach((offering) => {
+        if (offering.sections) {
+          offering.sections.forEach((section, index: number) => {
+            courses.push({
+              id: section.teachTableId || `${courseData.subjectId}-${index}`,
+              courseCode: courseData.subjectId,
+              courseName:
+                (courseData.courseNameTh || courseData.courseNameEn) || "Unknown Course",
+              time: `${section.teachTimeStart} - ${section.teachTimeEnd}`,
+              room: section.room || "TBA",
+              studentCount: section.enrolledCount || 0,
+              status: "draft",
+              lectureWeeks: [],
+              labWeeks: [],
+            });
+          });
+        }
+      });
+    }
+
+    return courses;
+  } catch (error) {
+    console.error("Error fetching courses from API:", error);
+    return [];
+  }
+};
+
+// ============================================
+// Helper: Initialize empty columns
+// ============================================
+const initializeEmptyColumns = (dayNames: Record<string, string>): DayColumn[] => [
+  { dayCode: "sunday", dayName: dayNames.sunday, courses: [] },
+  { dayCode: "monday", dayName: dayNames.monday, courses: [] },
+  { dayCode: "tuesday", dayName: dayNames.tuesday, courses: [] },
+  { dayCode: "wednesday", dayName: dayNames.wednesday, courses: [] },
+  { dayCode: "thursday", dayName: dayNames.thursday, courses: [] },
+  { dayCode: "friday", dayName: dayNames.friday, courses: [] },
+  { dayCode: "saturday", dayName: dayNames.saturday, courses: [] },
+];
+
 export function WorkloadForm({
   onConfirm = () => console.log("Confirm clicked"),
   initialYear = "2569",
@@ -69,6 +178,7 @@ export function WorkloadForm({
     () => searchParams.get("semester") || initialSemester,
   );
   const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
   const [isGridLoading, setIsGridLoading] = useState(initialEntries.length === 0);
 
   const isTh = currentLanguage === "th";
@@ -76,6 +186,25 @@ export function WorkloadForm({
   const [columns, setColumns] = useState<DayColumn[]>(() =>
     mapEntriesToColumns(initialEntries),
   );
+=======
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const isTh = currentLanguage === "th";
+
+  // Initialize with empty columns
+  const [columns, setColumns] = useState<DayColumn[]>(() => {
+    const dayNames = {
+      sunday: t("WorkloadForm.sunday"),
+      monday: t("WorkloadForm.monday"),
+      tuesday: t("WorkloadForm.tuesday"),
+      wednesday: t("WorkloadForm.wednesday"),
+      thursday: t("WorkloadForm.thursday"),
+      friday: t("WorkloadForm.friday"),
+      saturday: t("WorkloadForm.saturday"),
+    };
+    return initializeEmptyColumns(dayNames);
+  });
+>>>>>>> a44031f (feat: Enhance Workload Management UI and Functionality)
 
   useEffect(() => {
     const nextYear = searchParams.get("year");
@@ -154,26 +283,33 @@ export function WorkloadForm({
         const savedCourses: SavedCourse[] = JSON.parse(savedCoursesStr);
         console.log("✅ Loaded saved courses:", savedCourses);
 
+<<<<<<< HEAD
+=======
+        // Update columns with saved courses
+>>>>>>> a44031f (feat: Enhance Workload Management UI and Functionality)
         setColumns((prevColumns) => {
           const updatedColumns = prevColumns.map((col) => {
             const coursesToAdd = savedCourses.filter((course) => {
               const matches = course.dayOfWeek === col.dayCode;
-              console.log(`Filtering course ${course.courseCode} (dayOfWeek=${course.dayOfWeek}) for ${col.dayCode}: ${matches}`);
+              console.log(
+                `Filtering course ${course.courseCode} (dayOfWeek=${course.dayOfWeek}) for ${col.dayCode}: ${matches}`
+              );
               return matches;
             });
 
             return {
               ...col,
-              courses: [
-                ...col.courses,
-                ...coursesToAdd,
-              ],
+              courses: [...col.courses, ...coursesToAdd],
             };
           });
           console.log("Updated columns:", updatedColumns);
           return updatedColumns;
         });
 
+<<<<<<< HEAD
+=======
+        // Clear saved courses after loading
+>>>>>>> a44031f (feat: Enhance Workload Management UI and Functionality)
         sessionStorage.removeItem("workloadCourses");
       } catch (error) {
         console.error("Failed to load saved courses:", error);
@@ -202,18 +338,40 @@ export function WorkloadForm({
 
   const handleAddCourse = (dayCode: string) => {
     router.push(
-      `/workload/entry?day=${dayCode}&semester=${semester}&year=${academicYear}&mode=add`,
+      `/workload/entry?day=${dayCode}&semester=${semester}&year=${academicYear}&mode=add`
     );
   };
 
-  const handleConfirm = async () => {
+  const handleConfirmButton = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmDialog = async () => {
     setIsLoading(true);
     try {
       console.log("Confirming data:", { academicYear, semester });
+      
+      // Update all courses to 'pending' status
+      setColumns((prevColumns) =>
+        prevColumns.map((col) => ({
+          ...col,
+          courses: col.courses.map((course) => ({
+            ...course,
+            status: 'pending' as const,
+          })),
+        }))
+      );
+
+      // Call the onConfirm callback
       onConfirm();
     } finally {
       setIsLoading(false);
+      setShowConfirmDialog(false);
     }
+  };
+
+  const handleCancelDialog = () => {
+    setShowConfirmDialog(false);
   };
 
   return (
@@ -283,8 +441,21 @@ export function WorkloadForm({
 
       {/* Action Buttons */}
       <ActionButtons
-        onConfirm={handleConfirm}
+        onConfirm={handleConfirmButton}
         isLoading={isLoading}
+      />
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showConfirmDialog}
+        title={t("Alert.confirmWorkloadTitle")}
+        description={`${t("Alert.confirmWorkloadLine1")} ${semester}/${academicYear}\n${t("Alert.confirmWorkloadLine2")}\n${t("Alert.confirmWorkloadLine3")}`}
+        confirmText={isTh ? "ยืนยัน" : "Confirm"}
+        cancelText={isTh ? "ยกเลิก" : "Cancel"}
+        variant="warning"
+        isLoading={isLoading}
+        onConfirm={handleConfirmDialog}
+        onCancel={handleCancelDialog}
       />
     </div>
   );

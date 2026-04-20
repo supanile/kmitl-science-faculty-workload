@@ -63,7 +63,7 @@ export function AdditionalSection({
       </div>
 
       {/* ── Two equal-height columns ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 items-stretch">
 
         {/* ── Attachment ── */}
         <div className="flex flex-col gap-1.5 sm:gap-2">

@@ -37,9 +37,9 @@ export function CourseInfoSection({
         </h2>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-12">
         {/* Course Code Input */}
-        <div className="flex-1 min-w-0 space-y-1.5 sm:space-y-2">
+        <div className="lg:col-span-4 space-y-1.5 sm:space-y-2">
           <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.courseCode")} <span className="text-red-500">*</span>
           </Label>
@@ -72,7 +72,7 @@ export function CourseInfoSection({
         </div>
 
         {/* Course Name (Read-only) */}
-        <div className="flex-2 min-w-0 space-y-1.5 sm:space-y-2">
+        <div className="lg:col-span-6 space-y-1.5 sm:space-y-2">
           <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.courseName")}
           </Label>
@@ -95,11 +95,11 @@ export function CourseInfoSection({
         </div>
 
         {/* Credit Units Badge (Read-only) */}
-        <div className="shrink-0 space-y-1.5 sm:space-y-2 sm:w-24">
-          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8] sm:pl-5">
+        <div className="lg:col-span-2 space-y-1.5 sm:space-y-2 flex flex-col">
+          <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
             {t("WorkloadEntry.creditUnits")}
           </Label>
-          <div className="flex gap-2 h-10 sm:h-11 items-center justify-start sm:justify-center">
+          <div className="flex gap-2 h-10 sm:h-11 items-center justify-start">
             {creditUnits !== null ? (
               <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/40 px-2 sm:px-3 py-1.5 text-sm sm:text-base font-semibold text-green-700 dark:text-green-300 shrink-0">
                 {creditUnits} {t("WorkloadEntry.units")}

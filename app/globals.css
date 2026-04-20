@@ -145,3 +145,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .clickable {
+    cursor: pointer !important;
+  }
+}

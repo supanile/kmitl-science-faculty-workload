@@ -157,9 +157,9 @@ export function WeeklyGrid({
       </div>
 
       {/* ════════════════════════════════════════
-          MOBILE VIEW — shadcn/ui Accordion (< sm)
+          MOBILE/TABLET VIEW — shadcn/ui Accordion (< lg)
           ════════════════════════════════════════ */}
-      <div className="sm:hidden pb-2">
+      <div className="lg:hidden pb-2">
         <Accordion type="multiple" defaultValue={[]} className="space-y-2">
           {days.map((day) => {
             const column = columns.find((c) => c.dayCode === day.code);
@@ -227,9 +227,9 @@ export function WeeklyGrid({
       </div>
 
       {/* ════════════════════════════════════════
-          DESKTOP VIEW — 7-column grid (≥ sm)
+          DESKTOP VIEW — 7-column grid (≥ lg)
           ════════════════════════════════════════ */}
-      <div className="hidden sm:block -mx-4 sm:-mx-5">
+      <div className="hidden lg:block -mx-4 sm:-mx-5">
         {/* Header row */}
         <div className="grid grid-cols-7 bg-gray-100 dark:bg-[#3d3533] border-y border-gray-200 dark:border-[#4a4441]">
           {days.map((day) => {

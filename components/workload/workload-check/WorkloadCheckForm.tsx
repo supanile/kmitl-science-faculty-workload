@@ -35,16 +35,17 @@ interface WorkloadCheckFormProps {
   major: string;
   year: string;
   studyGroup: string;
+  studyGroupLabel?: string; // ← เพิ่ม: label ที่ resolve แล้วจาก studyGroupOptions
   enrolledStudents: string;
   weeklyStudents: string;
   lectureWeeks: WeekEntry[];
   labWeeks: WeekEntry[];
   attachedFileName?: string | null;
-  attachedFileData?: string | null; // Base64 encoded file data
+  attachedFileData?: string | null;
   notes?: string;
   academicYear?: string;
   semester?: string;
-  dayOfWeek?: string; // e.g., "monday", "wednesday"
+  dayOfWeek?: string;
   onEdit: () => void;
   onConfirm: () => Promise<void>;
 }
@@ -60,6 +61,7 @@ export function WorkloadCheckForm({
   major,
   year,
   studyGroup,
+  studyGroupLabel,
   enrolledStudents,
   weeklyStudents,
   lectureWeeks,
@@ -87,13 +89,11 @@ export function WorkloadCheckForm({
     setIsLoading(true);
     try {
       await onConfirm();
-      // แสดง success alert
     } catch (error) {
-      // แสดง error alert
       alert.error({
         title: t("Alert.errorTitle"),
-        description: error instanceof Error 
-          ? error.message 
+        description: error instanceof Error
+          ? error.message
           : t("Alert.errorDescription"),
       });
     } finally {
@@ -118,7 +118,6 @@ export function WorkloadCheckForm({
   };
   const degreeLevelDisplay = degreeLevelMap[degreeLevel] || degreeLevel;
 
-  // Day name mapping
   const dayNameMap: Record<string, string> = {
     sunday:    "อาทิตย์",
     monday:    "จันทร์",
@@ -136,18 +135,18 @@ export function WorkloadCheckForm({
     <div className="w-full space-y-4 sm:space-y-6">
       {/* ── Page Title ── */}
       <div className="text-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#f0ebe5">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-[#f0ebe5]">
           {t("WorkloadFormCheck.title")}
         </h1>
         <p className="mt-1 text-base sm:text-lg text-gray-500 dark:text-[#8b7f77]">
-          {academicYear && semester 
+          {academicYear && semester
             ? `${t("WorkloadForm.academicYear")} ${academicYear} ${t("WorkloadForm.semesterLabel")} ${semester}${dayOfWeek ? ` วัน${dayNameMap[dayOfWeek] || dayOfWeek}` : ""}`
             : t("WorkloadFormCheck.subtitle")
           }
         </p>
       </div>
 
-      {/* ── 1. Course Info + Teaching Info — equal columns, matching entry-form section style ── */}
+      {/* ── 1. Course Info + Teaching Info ── */}
       <TwoColumnSummary
         leftTitle={t("WorkloadFormCheck.courseInfo")}
         leftIcon={ClipboardList}
@@ -170,17 +169,18 @@ export function WorkloadCheckForm({
         ]}
       />
 
-      {/* ── 2. Student Type — full width ── */}
+      {/* ── 2. Student Type ── */}
       <StudentTypeSummary
         faculty={faculty}
         major={major}
         year={year}
         studyGroup={studyGroup}
+        studyGroupLabel={studyGroupLabel} // ← ส่ง label ที่ resolve แล้วมาด้วย
         enrolledStudents={enrolledStudents}
         weeklyStudents={weeklyStudents}
       />
 
-      {/* ── 3. Teaching Weeks — full width, each section shows 2 rows ── */}
+      {/* ── 3. Teaching Weeks ── */}
       <WeekBadgesSection
         title={t("WorkloadEntry.teachingWeeks")}
         typeLabel={t("WorkloadEntry.lecture")}
@@ -193,7 +193,7 @@ export function WorkloadCheckForm({
         weeks={labWeeks}
       />
 
-      {/* ── 4. Additional — two column layout ── */}
+      {/* ── 4. Additional ── */}
       <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-5 dark:border-[#4a4441] dark:bg-[#302826] border-l-4 border-l-orange-400 dark:border-l-[#C96442]">
         <div className="mb-4 sm:mb-5 pb-3 sm:pb-4 border-b-2 border-[#F27F0D] dark:border-[#C96442]">
           <h2 className="flex items-center gap-2 text-lg sm:text-xl font-bold text-gray-900 dark:text-[#f0ebe5]">
@@ -266,18 +266,6 @@ export function WorkloadCheckForm({
         onConfirm={handleConfirm}
         onCancel={() => setShowConfirmDialog(false)}
       />
-
-      {/* ── Success Alert ──
-      <SuccessAlert
-        isOpen={showSuccessAlert}
-        title={t("Alert.successTitle")}
-        description={t("Alert.successDescription")}
-        actionText={t("Alert.done")}
-        onAction={() => {
-          setShowSuccessAlert(false);
-          onEdit(); // ไป dashboard หรือหน้าแสดงประวัติ
-        }}
-      /> */}
 
       {/* ── Image Preview Modal ── */}
       {previewData && (

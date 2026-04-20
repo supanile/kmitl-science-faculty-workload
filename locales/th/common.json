@@ -136,7 +136,8 @@
     "informationTechnology": "เทคโนโลยีสารสนเทศ",
     "dataScience": "วิทยาศาสตร์ข้อมูล",
     "appliedMathematics": "คณิตศาสตร์ประยุกต์",
-    "noteSpecialLecturer": "การระบุ 'มีวิทยากรพิเศษ' ในสัปดาห์นั้นจะไม่ถูกนำมาคำนวณการเบิกจ่ายภาระงานสอน",
+    "noteSpecialLecturerPrefix": "หมายเหตุ : การระบุ 'มีวิทยากรพิเศษ' ในสัปดาห์นั้นจะ",
+    "noteSpecialLecturerHighlight": "ไม่ถูกนำมาคำนวณการเบิกจ่ายภาระงานสอน",
     "dropzoneClick": "คลิกเพื่อเลือกไฟล์",
     "dropzoneDrag": "หรือลากมาวาง",
     "dropzoneDragging": "วางไฟล์ที่นี่...",
@@ -188,6 +189,10 @@
     "infoTitle": "ข้อมูล",
     "infoDescription": "โปรดอ่านข้อความให้ทั่วถึง",
     "loadingTitle": "กำลังประมวลผล...",
-    "loadingDescription": "โปรดรอสักครู่ขณะที่เรากำลังประมวลผลคำขอของคุณ"
+    "loadingDescription": "โปรดรอสักครู่ขณะที่เรากำลังประมวลผลคำขอของคุณ",
+    "confirmWorkloadTitle": "ยืนยันข้อมูลทั้งหมด",
+    "confirmWorkloadLine1": "ยืนยันข้อมูลภาระงานสอนประจำ ปีการศึกษา",
+    "confirmWorkloadLine2": "ข้อมูลนี้จะถูกส่งไปยังหัวหน้าภาคการศึกษา",
+    "confirmWorkloadLine3": "คุณต้องการดำเนินการต่อหรือไม่?"
   }
 }

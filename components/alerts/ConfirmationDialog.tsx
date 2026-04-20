@@ -84,7 +84,9 @@ export function ConfirmationDialog({
       >
         {/* Header with Icon */}
         <div className="pt-8 px-6 flex justify-center">
-          <div className={`inline-flex items-center justify-center h-20 w-20 rounded-full ${style.bgIcon}`}>
+          <div
+            className={`inline-flex items-center justify-center h-20 w-20 rounded-full ${style.bgIcon}`}
+          >
             <IconComponent className={`h-12 w-12 ${style.textIcon}`} />
           </div>
         </div>
@@ -94,7 +96,7 @@ export function ConfirmationDialog({
           <h2 className="text-3xl font-bold text-gray-900 dark:text-[#f0ebe5] mb-3">
             {title}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-[#b8aaa0] leading-relaxed">
+          <p className="text-lg text-gray-600 dark:text-[#b8aaa0] leading-relaxed whitespace-pre-line">
             {description}
           </p>
         </div>
@@ -113,7 +115,9 @@ export function ConfirmationDialog({
             disabled={isLoading || isConfirming}
             className={`flex-1 h-12 rounded-3xl font-semibold text-base text-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${style.bgButton}`}
           >
-            {isConfirming ? t("Alert.confirming") : confirmText || t("Alert.confirm")}
+            {isConfirming
+              ? t("Alert.confirming")
+              : confirmText || t("Alert.confirm")}
           </Button>
         </div>
       </div>

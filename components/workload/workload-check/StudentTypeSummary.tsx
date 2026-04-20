@@ -8,6 +8,7 @@ interface StudentTypeSummaryProps {
   major: string;
   year: string;
   studyGroup: string;
+  studyGroupLabel?: string; // ← เพิ่ม: ใช้แสดง label ที่ resolve แล้วจาก options
   enrolledStudents: string;
   weeklyStudents: string;
 }
@@ -17,6 +18,7 @@ export function StudentTypeSummary({
   major,
   year,
   studyGroup,
+  studyGroupLabel,
   enrolledStudents,
   weeklyStudents,
 }: StudentTypeSummaryProps) {
@@ -50,11 +52,15 @@ export function StudentTypeSummary({
     d: t("WorkloadEntry.group4"),
   };
 
+  // ถ้ามี studyGroupLabel ที่ resolve แล้วจาก options ให้ใช้เลย
+  // ถ้าไม่มี → ลอง groupMap → fallback เป็น raw value
+  const groupDisplay = studyGroupLabel || groupMap[studyGroup] || studyGroup;
+
   const items = [
     { label: t("WorkloadFormCheck.faculty"),          value: facultyMap[faculty] || faculty },
     { label: t("WorkloadFormCheck.major"),            value: majorMap[major] || major },
     { label: t("WorkloadFormCheck.year"),             value: yearMap[year] || year },
-    { label: t("WorkloadFormCheck.studyGroup"),       value: groupMap[studyGroup] || studyGroup },
+    { label: t("WorkloadFormCheck.studyGroup"),       value: groupDisplay },
     { label: t("WorkloadFormCheck.enrolledStudents"), value: enrolledStudents },
     { label: t("WorkloadFormCheck.weeklyStudents"),   value: weeklyStudents },
   ];

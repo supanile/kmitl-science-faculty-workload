@@ -163,7 +163,11 @@ export function TeachingWeeksSection({
     onWeeksChange(
       weeks.map((w) =>
         w.weekNumber === weekNumber
-          ? { ...w, hasSpecialLecturer: checked, isSelected: checked ? false : w.isSelected }
+          ? {
+              ...w,
+              hasSpecialLecturer: checked,
+              isSelected: checked ? false : w.isSelected,
+            }
           : w,
       ),
     );
@@ -179,77 +183,80 @@ export function TeachingWeeksSection({
             : "border-gray-200 dark:border-[#4a4441]",
         ].join(" ")}
       >
-      {/* ── Collapsible Header ── */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 hover:bg-gray-50 dark:hover:bg-[#3d3533] transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-orange-100 dark:bg-[#C96442]/20 text-orange-600 dark:text-[#C96442]">
-            <CalendarDays className="h-4 w-4" />
-          </span>
-          <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-[#f0ebe5]">
-            {sectionLabel}
-          </span>
-          <span className="text-gray-400 dark:text-[#5a5350]">/</span>
-          <span className="text-base sm:text-lg font-bold text-[#F27F0D] dark:text-[#C96442]">
-            {typeLabel}
-          </span>
-        </div>
-        <ChevronUp
-          className={[
-            "h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-[#8b7f77] transition-transform duration-200",
-            isOpen ? "" : "rotate-180",
-          ].join(" ")}
-        />
-      </button>
-
-      {/* Orange divider line (always visible) */}
-      <div className="h-0.5 bg-[#F27F0D] dark:bg-[#C96442] mx-4 sm:mx-5" />
-
-      {/* ── Collapsible Body ── */}
-      {isOpen && (
-        <div className="px-4 sm:px-5 py-4 sm:py-5 space-y-4">
-          {/* Select All — bulk-toggles hasSpecialLecturer checkboxes */}
-          <label className="inline-flex items-center gap-2 cursor-pointer w-fit">
-            <input
-              type="checkbox"
-              checked={allChecked}
-              ref={(el) => {
-                if (el) el.indeterminate = !allChecked && someChecked;
-              }}
-              onChange={(e) => handleSelectAll(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 accent-orange-500 cursor-pointer"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
-              {t("WorkloadEntry.selectAll")}
+        {/* ── Collapsible Header ── */}
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 sm:px-5 py-4 sm:py-5 hover:bg-gray-50 dark:hover:bg-[#3d3533] transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-orange-100 dark:bg-[#C96442]/20 text-orange-600 dark:text-[#C96442]">
+              <CalendarDays className="h-4 w-4" />
             </span>
-          </label>
+            <span className="text-base sm:text-lg font-bold text-gray-900 dark:text-[#f0ebe5]">
+              {sectionLabel}
+            </span>
+            <span className="text-gray-400 dark:text-[#5a5350]">/</span>
+            <span className="text-base sm:text-lg font-bold text-[#F27F0D] dark:text-[#C96442]">
+              {typeLabel}
+            </span>
+          </div>
+          <ChevronUp
+            className={[
+              "h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-[#8b7f77] transition-transform duration-200",
+              isOpen ? "" : "rotate-180",
+            ].join(" ")}
+          />
+        </button>
 
-          {/* Week Grid — 2 cols mobile, 4 cols sm+ */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            {weeks.map((week) => (
-              <WeekTile
-                key={week.weekNumber}
-                week={week}
-                onCardClick={() => handleCardClick(week.weekNumber)}
-                onCheckboxChange={(checked) =>
-                  handleCheckboxChange(week.weekNumber, checked)
-                }
+        {/* Orange divider line (always visible) */}
+        <div className="h-0.5 bg-[#F27F0D] dark:bg-[#C96442] mx-4 sm:mx-5" />
+
+        {/* ── Collapsible Body ── */}
+        {isOpen && (
+          <div className="px-4 sm:px-5 py-4 sm:py-5 space-y-4">
+            {/* Select All — bulk-toggles hasSpecialLecturer checkboxes */}
+            <label className="inline-flex items-center gap-2 cursor-pointer w-fit">
+              <input
+                type="checkbox"
+                checked={allChecked}
+                ref={(el) => {
+                  if (el) el.indeterminate = !allChecked && someChecked;
+                }}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 accent-orange-500 cursor-pointer"
               />
-            ))}
-          </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-[#e8e0d8]">
+                {t("WorkloadEntry.selectAll")}
+              </span>
+            </label>
 
-          {/* Info note */}
-          <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 dark:bg-amber-900/10 dark:border-amber-900/30">
-            <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-[#8b7f77] leading-relaxed">
-              {t("WorkloadEntry.noteSpecialLecturer")}
-            </p>
+            {/* Week Grid — 2 cols mobile, 4 cols sm+ */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+              {weeks.map((week) => (
+                <WeekTile
+                  key={week.weekNumber}
+                  week={week}
+                  onCardClick={() => handleCardClick(week.weekNumber)}
+                  onCheckboxChange={(checked) =>
+                    handleCheckboxChange(week.weekNumber, checked)
+                  }
+                />
+              ))}
+            </div>
+
+            {/* Info note */}
+            <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 dark:bg-amber-900/10 dark:border-amber-900/30">
+              <Info className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-[#8b7f77] leading-relaxed">
+                {t("WorkloadEntry.noteSpecialLecturerPrefix")}{" "}
+                <span className="text-[#F27F0D] dark:text-[#C96442] font-medium">
+                  {t("WorkloadEntry.noteSpecialLecturerHighlight")}
+                </span>
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
       {hasError && errorMessage && (
         <p className="text-xs text-red-500 dark:text-red-400 mt-1.5 px-1">

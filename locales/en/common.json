@@ -136,7 +136,8 @@
     "informationTechnology": "Information Technology",
     "dataScience": "Data Science",
     "appliedMathematics": "Applied Mathematics",
-    "noteSpecialLecturer": "Weeks marked as Special Lecturer will not be included in workload payment calculations",
+    "noteSpecialLecturerPrefix": "Note: Weeks marked as 'Special Lecturer' will",
+    "noteSpecialLecturerHighlight": "not be included in workload payment calculations.",
     "dropzoneClick": "Click to select file",
     "dropzoneDrag": "or drag and drop",
     "dropzoneDragging": "Drop file here...",
@@ -188,6 +189,10 @@
     "infoTitle": "Information",
     "infoDescription": "Please read the message carefully.",
     "loadingTitle": "Processing...",
-    "loadingDescription": "Please wait while we process your request."
+    "loadingDescription": "Please wait while we process your request.",
+    "confirmWorkloadTitle": "Confirm All Data",
+    "confirmWorkloadLine1": "Confirm teaching workload data for Academic Year",
+    "confirmWorkloadLine2": "This information will be sent to the department head.",
+    "confirmWorkloadLine3": "Do you want to proceed?"
   }
 }

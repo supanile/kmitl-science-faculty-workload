@@ -60,8 +60,8 @@ export function StudentTypeSection({
         </h2>
       </div>
 
-      {/* Display-only Grid: 3 columns on top */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
+      {/* Display-only Grid: responsive columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
         {/* Faculty */}
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
@@ -124,7 +124,7 @@ export function StudentTypeSection({
       </div>
 
       {/* Display-only Grid: 2 columns on bottom */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {/* Group */}
         <div className="space-y-1.5 sm:space-y-2">
           <Label className="text-sm sm:text-base font-medium text-gray-700 dark:text-[#e8e0d8]">
