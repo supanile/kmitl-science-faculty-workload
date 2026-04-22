@@ -324,7 +324,7 @@ export function WorkloadHistoryDetailContent({
 
       {selectedCourseId ? (
         <div ref={detailSectionRef} className="space-y-4">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -365,7 +365,7 @@ export function WorkloadHistoryDetailContent({
             </div>
 
             <div className="h-fit self-start rounded-xl border border-[#F27F0D]/20 bg-[#F27F0D]/5 p-4 shadow-sm">
-              <div className="flex flex-col gap-3 border-b border-[#F27F0D]/15 pb-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-row items-center justify-between gap-3 border-b border-[#F27F0D]/15 pb-4">
                 <h2 className="text-base font-medium text-[#F27F0D]">
                   {t('WorkloadHistoryDetail.selectedCourse')}
                 </h2>
