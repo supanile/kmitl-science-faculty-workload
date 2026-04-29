@@ -54,6 +54,5 @@ export const auth = betterAuth({
 
   plugins: [
     dash(),
-    admin()
   ]
 });
